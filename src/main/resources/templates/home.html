@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Trang Chủ</title>
+    <script>
+        function callApi(apiUrl) {
+            fetch(apiUrl)
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById("result").innerText = data;
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById("result").innerText = 'Có lỗi xảy ra';
+                });
+        }
+    </script>
+</head>
+<body>
+<h1>Trang Chủ</h1>
+<button onclick="callApi('/api/run')">Run</button>
+<button onclick="callApi('/api/stop')">Stop</button>
+<p id="result">Kết quả sẽ hiển thị ở đây.</p>
+</body>
+</html>
