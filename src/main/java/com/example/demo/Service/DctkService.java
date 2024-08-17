@@ -317,7 +317,7 @@ public class DctkService {
         String url = "https://dctk.me/";
         String time = null;
         try {
-            String serviceUrl = "http://localhost:3000/fetch-html?url=" + java.net.URLEncoder.encode(url, "UTF-8");
+            String serviceUrl = "https://htth-ws.onrender.com/fetch-html?url=" + java.net.URLEncoder.encode(url, "UTF-8");
             String checkString = "<strong class=\"text-[#333333]\">Thời gian:</strong></div><div class=\"col-span-2 text-center\"><span class=\"text-[#333333]\">";
             boolean check = true;
             CloseableHttpClient httpClient = HttpClients.createDefault();
