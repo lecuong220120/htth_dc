@@ -28,6 +28,18 @@ public class DctkController {
         });
         return "Run success";
     }
+    @GetMapping("/run1")
+    public String run1() {
+        ExecutorService executorService = Executors.newFixedThreadPool(1);
+        executorService.submit(() -> {
+            try {
+                dctkService.playNow();
+            } catch (Exception e) {
+                Thread.currentThread().interrupt();
+            }
+        });
+        return "Run success";
+    }
     @GetMapping("/stop")
     public String stop() {
         try {

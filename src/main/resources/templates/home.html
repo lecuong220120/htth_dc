@@ -19,8 +19,17 @@
 </head>
 <body>
 <h1>Trang Chủ</h1>
-<button onclick="callApi('/api/run')">Run</button>
+<button onclick="callApi('/api/run')">Logic 1</button>
+<button onclick="callApi('/api/run1')">Logic 2</button>
 <button onclick="callApi('/api/stop')">Stop</button>
 <p id="result">Kết quả sẽ hiển thị ở đây.</p>
+<form th:action="@{/submitForm}" th:object="${formData}" method="post">
+    <label for="inputText">Nhập giá trị:</label>
+    <input type="text" id="inputText" th:field="*{inputText}" />
+    <input type="text" id="inputText1" th:field="*{inputText1}" />
+    <button type="submit">Gửi</button>
+</form>
+<h1>Kết quả Coin:</h1>
+<p th:text="${apiResponse}"></p>
 </body>
 </html>
