@@ -17,6 +17,7 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
 public class WebSocketScraper extends WebSocketClient {
@@ -49,10 +50,12 @@ public class WebSocketScraper extends WebSocketClient {
             player.setName_server(obj.getString("name_server"));
             if(isBefore(player.getTime())){
                 if(!dctkService.listMapPlayer.containsKey(player.getId())){
+                    System.out.println("Name: "+player.getName() + ", coin: " + player.getCoin());
                     dctkService.listMapPlayer.put(player.getId(), player);
                 }
             }
         }
+        System.out.println("dctkService.listMapPlayer size:" + dctkService.listMapPlayer.size());
     }
 
     @Override
@@ -65,7 +68,7 @@ public class WebSocketScraper extends WebSocketClient {
         System.err.println("An error occurred: " + ex.getMessage());
     }
     public static SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
-    public boolean isBefore(String time){
+    public static boolean isBefore(String time){
         try {
             History history = dctkService.historyBefore;
 //            if(history == null){

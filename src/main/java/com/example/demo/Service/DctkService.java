@@ -72,6 +72,14 @@ public class DctkService {
     public static List<Integer> historyWin = new ArrayList<>();
     public static  Integer countDC = 0;
     public static  Integer countTK = 0;
+    //list count statistic
+    public static Integer moneyChangeDC = 0;
+    public static Integer moneyChangeTK = 0;
+    public static Integer statisticWinDC = 0;
+    public static Integer statisticLoseDC = 0;
+    public static Integer statisticWinTK = 0;
+    public static Integer statisticLoseTK = 0;
+    public static Map<Integer, Integer> statistic = new HashMap<>();
     //web socket
     public static Map<Integer, Player> listMapPlayer = new HashMap<>();
     public HistoryDTO getHistory(){
@@ -313,6 +321,7 @@ public class DctkService {
     public void stop(){
         isRun = false;
     }
+    public static boolean isFirstRun = false;
     public String getTimeCurrent(){
         String url = "https://dctk.me/";
         String time = null;
@@ -336,8 +345,10 @@ public class DctkService {
                             if (!Objects.equals(time, "02:00") && !StringUtils.isEmpty(time)){
                                 List<History> historiesRes = getHistory().getHistories();
                                 historyBefore =  historiesRes.get(0);
-                                sycnMail(historiesRes);
                                 check = false;
+                                sycnMail(historiesRes);
+                                moneyChangeDC = 0;
+                                moneyChangeTK = 0;
                             }
                             Thread.sleep(500);
                         }
@@ -368,6 +379,8 @@ public class DctkService {
         return milliseconds;
     }
     public static Long timeEnd = null;
+    public static boolean isPlayDc = true;
+    public static boolean isPlayTk = true;
     public void playVersion2() throws InterruptedException {
         while (isRun && getNewSession(true)){
             Integer selectD = 0;
@@ -376,9 +389,8 @@ public class DctkService {
             Integer selectK = 0;
             Long timeCurrent = convertToMilliseconds(getTimeCurrent());
             Long timeEnd = System.currentTimeMillis() + timeCurrent - (30 * 1000);
-            listMapPlayer = new HashMap<>();
             while(System.currentTimeMillis() < timeEnd){
-                Thread.sleep(1000);
+                Thread.sleep(500);
             }
             if(CollectionUtils.isEmpty(listMapPlayer)){
                 System.out.println("========playSet is empty");
@@ -386,9 +398,12 @@ public class DctkService {
             }
             List<Player> players = new ArrayList<>();
             for (Map.Entry<Integer, Player> entry : listMapPlayer.entrySet()) {
-                players.add(entry.getValue());
+                if(WebSocketScraper.isBefore(entry.getValue().getTime())){
+                    players.add(entry.getValue());
+                }
             }
             System.out.println("====================Player size(): " + players.size());
+            System.out.println("====================listMapPlayer size(): " + listMapPlayer.size());
             for (int i =0; i < players.size(); i++){
                 if(players.get(i).getSelection() == DctkUtils.DCTK.D){
                     selectD = selectD + players.get(i).getCoin();
@@ -427,25 +442,58 @@ public class DctkService {
             text = "";
             String textDc = "";
             String textTk = "";
-            if(checkDC){
-                textDc = "D: Play D with " + formatNumber(selectD) + " < " + formatNumber(selectC) + ", chenh lech: " + formatNumber(selectC -selectD);
-            }else{
-                textDc = "C: Play C with " + formatNumber(selectC) + " < " + formatNumber(selectD) + ", chenh lech: " + formatNumber(selectD -selectC);
+            moneyChangeDC = selectC -selectD;
+            moneyChangeTK = selectK -selectT;
+            Integer compareMoneyChangeDC = (selectC -selectD) > 0 ? selectC -selectD : selectD -selectC;
+            Integer compareMoneyChangeTK = (selectK -selectT) > 0 ? selectK -selectT : selectT -selectK;
+//            Integer rangeDC = 0;
+//            Integer rangeTk = 0;
+//            if(compareMoneyChangeDC > compareMoneyChangeTK){
+//                rangeDC = compareMoneyChangeDC - compareMoneyChangeTK;
+//            }
+//            if(compareMoneyChangeTK > compareMoneyChangeDC){
+//                rangeTk = compareMoneyChangeTK - compareMoneyChangeDC;
+//            }
+//            if(rangeDC != 0){
+//                System.out.println("===========active play DC");
+//                isPlayDc = true;
+//            }
+//            if(rangeTk != 0){
+//                System.out.println("===========active play TK");
+//                isPlayTk = true;
+//            }
+            Integer coinPlayDc = compareMoneyChangeDC < DctkUtils.DCTK.rangePlay ? 100000 : (Integer) ((compareMoneyChangeDC * 10) / 1000);
+            Integer coinPlayTk = compareMoneyChangeTK < DctkUtils.DCTK.rangePlay ? 100000 : (Integer)((compareMoneyChangeTK * 10) / 1000);
+            if(compareMoneyChangeDC > 100000000){
+                coinPlayDc = 1000000;
             }
-            if(checkTK){
-                textTk = "T: Play T with " + formatNumber(selectT) + " < " + formatNumber(selectK) + ", chenh lech: " + formatNumber(selectK -selectT);
+            if(compareMoneyChangeTK > 100000000){
+                coinPlayTk = 1000000;
+            }
+            if(checkDC){
+                textDc = "D: chenh lech: " + formatNumber(compareMoneyChangeDC);
             }else{
-                textTk = "K: Play K with " + formatNumber(selectK) + " < " + formatNumber(selectT) + ", chenh lech: " + formatNumber(selectT -selectK);
+                textDc = "C: chenh lech: " + formatNumber(compareMoneyChangeDC);
             }
             System.out.println(textDc);
-            System.out.println(textTk);
-            text = text + textDc +"\n" + textTk +"\n";
+            text = text + textDc +"\n";
+            dcApi.setCoin(coinPlayDc);
             ResponseDctk responseDc = callApi(dcApi);
             System.out.println("===================Response DC: " + responseDc.getMessage());
-            Thread.sleep(3 * 500);
+            if(checkTK){
+                textTk = "T: chenh lech: " + formatNumber(compareMoneyChangeTK);
+            }else{
+                textTk = "K: chenh lech: " + formatNumber(compareMoneyChangeTK);
+            }
+            tkApi.setCoin(coinPlayTk);
+            System.out.println(textTk);
+            text = text + textTk +"\n";
             ResponseDctk responseTk = callApi(tkApi);
             System.out.println("===================Response TK: " + responseTk.getMessage());
-            listMapPlayer = new HashMap<>();
+            isPlayTk = false;
+            if(isFirstRun){
+                isFirstRun = false;
+            }
         }
     }
     static SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
@@ -456,7 +504,11 @@ public class DctkService {
                 String timeEnd = historiesRes.get(0).getStop();
                 Date date = formatter.parse(timeEnd);
                 if(System.currentTimeMillis() > date.getTime()){
+                    System.out.println("===================> New Sessionnn <=========================");
+                    DctkService.listMapPlayer.clear();
+                    DctkService.listMapPlayer = new HashMap<>();
                     return true;
+
                 }
                 Thread.sleep(500);
             } catch (Exception e) {
@@ -465,40 +517,65 @@ public class DctkService {
         }
         return false;
     }
-    public static String formatNumber(int number) {
+    public String formatNumber(int number) {
         DecimalFormat df;
+        boolean isNegative = number < 0;
+        int absNumber = Math.abs(number);
 
-        if (number < 1000) {
+        if (absNumber < 1000) {
             // Không cần định dạng cho số nhỏ hơn 1000
-            return String.valueOf(number);
-        } else if (number < 1_000_000) {
+            return (isNegative ? "-" : "") + absNumber;
+        } else if (absNumber < 1_000_000) {
             // Định dạng với hàng nghìn
             df = new DecimalFormat("#,###");
-        } else if (number < 1_000_000_000) {
+        } else if (absNumber < 1_000_000_000) {
             // Định dạng với hàng triệu
             df = new DecimalFormat("#,###.##M");
-            return df.format(number / 1_000_000.0);
+            return (isNegative ? "-" : "") + df.format(absNumber / 1_000_000.0);
         } else {
             // Định dạng với hàng tỷ
             df = new DecimalFormat("#,###.##B");
-            return df.format(number / 1_000_000_000.0);
+            return (isNegative ? "-" : "") + df.format(absNumber / 1_000_000_000.0);
         }
 
-        return df.format(number);
+        return (isNegative ? "-" : "") + df.format(absNumber);
     }
     public static String text = "";
+    public static String textStatic = "";
+    public static List<StatisticObj> statisticObjs = new ArrayList<>();
     public void sycnMail(List<History> histories){
+        if(isFirstRun) return;
         history = histories.get(0);
         if(history != null){
             Integer idPrev =  history.getId();
             if(history.getResult_cd() == DctkUtils.DCTK.D){
+                if(moneyChangeDC > 0){
+                    statisticWinDC = statisticWinDC + 1;
+                }else if(moneyChangeDC < 0){
+                    statisticLoseDC = statisticLoseDC + 1;
+                }
                 text = text + "win ===> D " + "\n";
             }else{
+                if(moneyChangeDC < 0){
+                    statisticWinDC = statisticWinDC + 1;
+                }else if(moneyChangeDC > 0){
+                    statisticLoseDC = statisticLoseDC + 1;
+                }
                 text = text + "win ===> C " + "\n";
             }
             if(history.getResult_tk() == DctkUtils.DCTK.T){
+                if(moneyChangeTK > 0){
+                    statisticWinTK = statisticWinTK + 1;
+                }else if(moneyChangeTK < 0){
+                    statisticLoseTK = statisticLoseTK + 1;
+                }
                 text = text + "win ===> T " + "\n";
             }else{
+                if(moneyChangeTK < 0){
+                    statisticWinTK = statisticWinTK + 1;
+                }else if(moneyChangeTK > 0){
+                    statisticLoseTK = statisticLoseTK + 1;
+                }
                 text = text + "win ===> K " + "\n";
             }
             List<Balance> balances = getBalance().stream().
@@ -518,12 +595,31 @@ public class DctkService {
                     text = text + "==============> Failure";
                 }
                 System.out.println(text);
+                text = text + "\n\n\t********Statistic win DC: " + statisticWinDC + ", lose DC: " + statisticLoseDC
+                        + "\n\n\t********Statistic win TK: " + statisticWinTK + ", lose DC: " + statisticLoseTK;
+                StatisticObj statisticObj = getStatisticObj();
+                statisticObjs.add(statisticObj);
+                System.out.println("===============size statisticList: " +statisticObjs.size());
                 sendMail(text);
                 text = "";
             }
         }
 
     }
+
+    private static StatisticObj getStatisticObj() {
+        StatisticObj statisticObj = new StatisticObj();
+        statisticObj.setMoneyChangeDC(moneyChangeDC);
+        statisticObj.setMoneyChangeTK(moneyChangeTK);
+        statisticObj.setResultDC(moneyChangeDC > 0 ? "C" : "D");
+        statisticObj.setResultTK(moneyChangeTK > 0 ? "T" : "K");
+        statisticObj.setCountWinDC(statisticWinDC);
+        statisticObj.setCountLoseDC(statisticLoseDC);
+        statisticObj.setCountLoseTK(statisticLoseTK);
+        statisticObj.setCountWinTK(statisticWinTK);
+        return statisticObj;
+    }
+
     private static WebSocketClient client = null;
     public void connectSocket(){
         URI uri = null;

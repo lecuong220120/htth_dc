@@ -21,6 +21,7 @@ public class DctkController {
         ExecutorService executorService = Executors.newFixedThreadPool(1);
         executorService.submit(() -> {
             try {
+                dctkService.isFirstRun = true;
                 dctkService.playVersion2();
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
