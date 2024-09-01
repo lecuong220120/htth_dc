@@ -5,7 +5,6 @@ public class DCTK {
     private Integer selection;
     private Integer coin;
     private Integer id_server;
-
     public DCTK(Integer type, Integer selection, Integer coin, Integer id_server) {
         this.type = type;
         this.selection = selection;

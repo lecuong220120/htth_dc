@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 @Controller
@@ -49,39 +50,59 @@ public class WebController {
         String headerValue = "attachment; filename=data.xlsx";
         response.setHeader(headerKey, headerValue);
 
-        List<StatisticObj> listData = dctkService.statisticObjs;
+        List<StatisticObj> listDataDC = DctkService.lstStatisticDc;
+        List<StatisticObj> listDataTK = DctkService.lstStatisticTk;
 
         XSSFWorkbook workbook = new XSSFWorkbook();
-        XSSFSheet sheet = workbook.createSheet("Data");
+        XSSFSheet sheetDc = workbook.createSheet("DataDC");
+        XSSFSheet sheetTk = workbook.createSheet("DataTK");
 
-        // Header row
-        Row headerRow = sheet.createRow(0);
-        headerRow.createCell(0).setCellValue("ResultDC");
-        headerRow.createCell(1).setCellValue("ResultTK");
-        headerRow.createCell(2).setCellValue("ChangeMoneyDC");
-        headerRow.createCell(3).setCellValue("ChangeMoneyTK");
-        headerRow.createCell(4).setCellValue("CountWinDC");
-        headerRow.createCell(5).setCellValue("CountLoseDC");
-        headerRow.createCell(6).setCellValue("CountWinTK");
-        headerRow.createCell(7).setCellValue("CountLostTK");
+        // Header row dc
+        Row headerRowDc = sheetDc.createRow(0);
+        headerRowDc.createCell(0).setCellValue("Result");
+        headerRowDc.createCell(1).setCellValue("MoneyDC");
+        headerRowDc.createCell(2).setCellValue("CountWinDC");
+        headerRowDc.createCell(3).setCellValue("CountLoseDC");
+
+        // Header row tk
+        Row headerRowTk = sheetTk.createRow(0);
+        headerRowTk.createCell(0).setCellValue("Result");
+        headerRowTk.createCell(1).setCellValue("MoneyTk");
+        headerRowTk.createCell(2).setCellValue("CountWinTk");
+        headerRowTk.createCell(3).setCellValue("CountLoseTk");
         // Add more columns as needed
 
-        // Data rows
+        // Data rows dc
         int rowNum = 1;
-        for (StatisticObj data : listData) {
-            Row row = sheet.createRow(rowNum++);
-            row.createCell(0).setCellValue(data.getResultDC());
-            row.createCell(1).setCellValue(data.getResultTK());
-            row.createCell(2).setCellValue(dctkService.formatNumber(data.getMoneyChangeDC()));
-            row.createCell(3).setCellValue(dctkService.formatNumber(data.getMoneyChangeTK()));
-            row.createCell(4).setCellValue(data.getCountWinDC());
-            row.createCell(5).setCellValue(data.getCountLoseDC());
-            row.createCell(6).setCellValue(data.getCountWinTK());
-            row.createCell(7).setCellValue(data.getCountLoseTK());
+        for (StatisticObj data : listDataDC) {
+            Row row = sheetDc.createRow(rowNum++);
+            row.createCell(0).setCellValue(Integer.parseInt(data.getResult()) == DctkUtils.DCTK.D  ? "D":"C");
+            row.createCell(1).setCellValue(dctkService.formatNumber(data.getMoney()));
+            row.createCell(2).setCellValue(data.getCountWin());
+            row.createCell(3).setCellValue(data.getCountLose());
+            // Add more cells as needed
+        }
+        // Data rows tk
+        int rowNumTk = 1;
+        for (StatisticObj data : listDataTK) {
+            Row row = sheetTk.createRow(rowNumTk++);
+            row.createCell(0).setCellValue(Integer.parseInt(data.getResult()) == DctkUtils.DCTK.T  ? "T":"K");
+            row.createCell(1).setCellValue(dctkService.formatNumber(data.getMoney()));
+            row.createCell(2).setCellValue(data.getCountWin());
+            row.createCell(3).setCellValue(data.getCountLose());
             // Add more cells as needed
         }
 
         workbook.write(response.getOutputStream());
         workbook.close();
+    }
+    public String returnResult(StatisticObj obj){
+        if(obj.isType()){
+            return Integer.parseInt(obj.getResult()) == DctkUtils.DCTK.D ? "d" : "c";
+        }
+        if(!obj.isType()){
+            return Integer.parseInt(obj.getResult()) == DctkUtils.DCTK.T ? "t" : "k";
+        }
+        return null;
     }
 }

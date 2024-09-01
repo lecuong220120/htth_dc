@@ -50,6 +50,15 @@ public class DctkController {
         }
         return "Stop success";
     }
+    @GetMapping("/change")
+    public String change() {
+        try {
+            dctkService.change();
+        } catch (Exception e) {
+            System.out.println("ERRORRRR Change");
+        }
+        return "Change success";
+    }
     @PostMapping("/ws")
     public void getWS(@RequestBody String data){
         System.out.println(data);

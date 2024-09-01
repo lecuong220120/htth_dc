@@ -3,10 +3,12 @@ package com.example.demo.websocket;
 import com.example.demo.Obj.History;
 import com.example.demo.Obj.Player;
 import com.example.demo.Service.DctkService;
+import com.example.demo.Utils.DctkUtils;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.springframework.util.StringUtils;
 
 import java.net.URI;
 import java.text.ParseException;
@@ -48,14 +50,12 @@ public class WebSocketScraper extends WebSocketClient {
             player.setStatus(obj.getInt("status"));
             player.setTime(obj.getString("time"));
             player.setName_server(obj.getString("name_server"));
-            if(isBefore(player.getTime())){
+            if(isBefore(player.getTime(), DctkService.historyBefore)){
                 if(!dctkService.listMapPlayer.containsKey(player.getId())){
-                    System.out.println("Name: "+player.getName() + ", coin: " + player.getCoin());
                     dctkService.listMapPlayer.put(player.getId(), player);
                 }
             }
         }
-        System.out.println("dctkService.listMapPlayer size:" + dctkService.listMapPlayer.size());
     }
 
     @Override
@@ -68,15 +68,13 @@ public class WebSocketScraper extends WebSocketClient {
         System.err.println("An error occurred: " + ex.getMessage());
     }
     public static SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
-    public static boolean isBefore(String time){
+    public static boolean isBefore(String time, History history){
         try {
-            History history = dctkService.historyBefore;
-//            if(history == null){
-//                List<History> historiesRes = dctkService.getHistory().getHistories();
-//                history = historiesRes.get(0);
-//            }
             if(history == null) return false;
-            Date date = formatter.parse(history.getStop());
+            if(StringUtils.isEmpty(history.getStop())){
+                return false;
+            }
+            Date date = formatter. parse(history.getStop());
             LocalDateTime currentDateTime = LocalDateTime.of(LocalDate.now(), LocalTime.parse(time));
             LocalDateTime otherDateTime = date.toInstant()
                     .atZone(ZoneId.systemDefault())

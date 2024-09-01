@@ -1,106 +1,58 @@
 package com.example.demo.Obj;
 
 public class StatisticObj {
-    private Integer moneyChangeDC;
-    private Integer moneyChangeTK;
-    private Integer moneyTK;
-    private Integer moneyDC;
-    private Integer countWinDC;
-    private Integer countWinTK;
-    private Integer countLoseDC;
-    private Integer countLoseTK;
-    private String resultDC;
-    private String resultTK;
+    private Integer moneyChange;
+    private Integer money;
+    private Integer countWin;
+    private Integer countLose;
+    private String result;
+    private boolean type; //true = dc, false = tk
 
-    public Integer getCountWinDC() {
-        return countWinDC;
+    public Integer getMoneyChange() {
+        return moneyChange;
     }
 
-    public void setCountWinDC(Integer countWinDC) {
-        this.countWinDC = countWinDC;
+    public void setMoneyChange(Integer moneyChange) {
+        this.moneyChange = moneyChange;
     }
 
-    public Integer getCountWinTK() {
-        return countWinTK;
+    public Integer getMoney() {
+        return money;
     }
 
-    public void setCountWinTK(Integer countWinTK) {
-        this.countWinTK = countWinTK;
+    public void setMoney(Integer money) {
+        this.money = money;
     }
 
-    public Integer getCountLoseDC() {
-        return countLoseDC;
+    public Integer getCountWin() {
+        return countWin;
     }
 
-    public void setCountLoseDC(Integer countLoseDC) {
-        this.countLoseDC = countLoseDC;
+    public void setCountWin(Integer countWin) {
+        this.countWin = countWin;
     }
 
-    public Integer getCountLoseTK() {
-        return countLoseTK;
+    public Integer getCountLose() {
+        return countLose;
     }
 
-    public void setCountLoseTK(Integer countLoseTK) {
-        this.countLoseTK = countLoseTK;
+    public void setCountLose(Integer countLose) {
+        this.countLose = countLose;
     }
 
-    public StatisticObj() {
+    public String getResult() {
+        return result;
     }
 
-    public StatisticObj(Integer moneyChangeDC, Integer moneyChangeTK, Integer moneyTK, Integer moneyDC, String resultDC, String resultTK) {
-        this.moneyChangeDC = moneyChangeDC;
-        this.moneyChangeTK = moneyChangeTK;
-        this.moneyTK = moneyTK;
-        this.moneyDC = moneyDC;
-        this.resultDC = resultDC;
-        this.resultTK = resultTK;
+    public void setResult(String result) {
+        this.result = result;
     }
 
-    public Integer getMoneyChangeDC() {
-        return moneyChangeDC;
+    public boolean isType() {
+        return type;
     }
 
-    public void setMoneyChangeDC(Integer moneyChangeDC) {
-        this.moneyChangeDC = moneyChangeDC;
-    }
-
-    public Integer getMoneyChangeTK() {
-        return moneyChangeTK;
-    }
-
-    public void setMoneyChangeTK(Integer moneyChangeTK) {
-        this.moneyChangeTK = moneyChangeTK;
-    }
-
-    public Integer getMoneyTK() {
-        return moneyTK;
-    }
-
-    public void setMoneyTK(Integer moneyTK) {
-        this.moneyTK = moneyTK;
-    }
-
-    public Integer getMoneyDC() {
-        return moneyDC;
-    }
-
-    public void setMoneyDC(Integer moneyDC) {
-        this.moneyDC = moneyDC;
-    }
-
-    public String getResultDC() {
-        return resultDC;
-    }
-
-    public void setResultDC(String resultDC) {
-        this.resultDC = resultDC;
-    }
-
-    public String getResultTK() {
-        return resultTK;
-    }
-
-    public void setResultTK(String resultTK) {
-        this.resultTK = resultTK;
+    public void setType(boolean type) {
+        this.type = type;
     }
 }
