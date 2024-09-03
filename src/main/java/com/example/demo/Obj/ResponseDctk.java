@@ -7,10 +7,29 @@ public class ResponseDctk {
     private Integer code;
     @JsonProperty("message")
     private String message;
-
+    @JsonProperty("success")
+    private boolean success;
     public ResponseDctk(Integer code, String message) {
         this.code = code;
         this.message = message;
+    }
+
+    public ResponseDctk(Integer code, String message, boolean success) {
+        this.code = code;
+        this.message = message;
+        this.success = success;
+    }
+
+    public void setCode(Integer code) {
+        this.code = code;
+    }
+
+    public boolean isSuccess() {
+        return success;
+    }
+
+    public void setSuccess(boolean success) {
+        this.success = success;
     }
 
     public ResponseDctk() {
@@ -30,5 +49,14 @@ public class ResponseDctk {
 
     public void setMessage(String message) {
         this.message = message;
+    }
+
+    @Override
+    public String toString() {
+        return "ResponseDctk{" +
+                "code=" + code +
+                ", message='" + message + '\'' +
+                ", success=" + success +
+                '}';
     }
 }

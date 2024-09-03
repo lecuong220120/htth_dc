@@ -40,6 +40,7 @@ public class DctkService {
     private static boolean isRun = true;
     private RestTemplate restTemplate = new RestTemplate();
     private static String url = "https://api.dctk.me/api/home/history?page=1";
+    private static String urlDrawal = "https://api.dctk.me/api/user/withdrawal";
     private static String urlToken = "https://api.dctk.me/api/login";
     private static String urlPlay = "https://api.dctk.me/api/user/join";
     private static String urlBalance = "https://api.dctk.me/api/user/balance-history?page=1&limit=20";
@@ -319,6 +320,25 @@ public class DctkService {
         }
         return response.getBody();
     }
+    public ResponseDctk callDrawalApi(Drawl drawl){
+        HttpHeaders httpHeaders = new HttpHeaders();
+        ResponseEntity<ResponseDctk> response = null;
+        HttpEntity<?> requestEntity = null;
+        try{
+            httpHeaders.set("Authorization", "Bearer " + token);
+            httpHeaders.set("Content-Type", "application/json");
+            requestEntity = new HttpEntity<>(drawl, httpHeaders);
+            response = restTemplate.exchange(urlDrawal, HttpMethod.POST, requestEntity, ResponseDctk.class);
+        }catch (Exception e){
+            token = getToken();
+            httpHeaders.set("Authorization", "Bearer " + token);
+            httpHeaders.set("Content-Type", "application/json");
+            requestEntity = new HttpEntity<>(drawl, httpHeaders);
+            response = restTemplate.exchange(urlDrawal, HttpMethod.POST, requestEntity, ResponseDctk.class);
+        }
+        sendMail("Tao don rut xu thanh cong!!! Xu rut: "+ drawl.getCoin() + "\n" + response.getBody().toString());
+        return response.getBody();
+    }
     public void sendMail(String text){
         // Cấu hình SMTP server
         String host = "smtp.gmail.com";
@@ -449,7 +469,8 @@ public class DctkService {
     public static DCTK ktBefore;
     public static boolean checkDc;
     public static boolean checkTk;
-    public static boolean activeLogicNew = true;
+    public static boolean activeLogicNew = false;
+    public static boolean activeLogicNew1 = true;
     public static List<String> DQT = new ArrayList<>(List.of("D", "T", "Q"));
     public static List<String> UCK = new ArrayList<>(List.of("C", "K", "U"));
     public static List<String> CT = new ArrayList<>(List.of("C", "T"));
@@ -505,6 +526,159 @@ public class DctkService {
                     }
                 }
                 System.out.println("==========Active logic new :" + activeLogicNew);
+
+                if(activeLogicNew1){
+                    Integer idPrev =  getHistory().getHistories().get(0).getId();
+                    int countSuccess = 0;
+                    List<Balance> balances = getBalance().stream().
+                            filter(item -> item.getNote().indexOf(idPrev.toString()) != -1)
+                            .collect(Collectors.toList());
+                    if(!CollectionUtils.isEmpty(balances)){
+                        for (Balance balance : balances) {
+                            if(balance.getNote().indexOf("Tham gia phiên") != -1){
+                            }
+                            if(balance.getNote().indexOf("Trao thưởng phiên") != -1){
+                                countSuccess++;
+                                text = text + balance.toString() + "\n";
+                                if(balance.getAfter() > DctkUtils.DCTK.coinDrawl){
+                                    Drawl drawl = new Drawl();
+                                    drawl.setCharacter("tiktokab");
+                                    drawl.setCoin(20000000);
+                                    drawl.setPassword("admadm");
+                                    drawl.setAccount("avatarlands");
+                                    drawl.setIdServer("4");
+                                    callDrawalApi(drawl);
+                                }
+                            }else{
+                            }
+                        }
+                        if (countSuccess ==0 ){
+                            text = text + "==============> Lose van truoc" + "\n";
+                        }
+                    }
+                    List<String> strSum = new ArrayList<>();
+                    Integer tongDQT = selectD + selectQ + selectT;
+                    Integer tongWinDQT = selectD * 2 + selectQ * 3 + selectT * 2;
+                    Integer tongUCK = selectU + selectC + selectK;
+                    Integer tongWinUCK = selectU * 3 + selectC * 2+ selectK * 2;
+                    Integer tongDK = selectD + selectK;
+                    Integer tongWinDK = selectD * 2 + selectK * 2;
+                    Integer tongCT = selectC + selectT ;
+                    Integer tongWinCT = selectC * 2 + selectT * 2;
+                    Integer tong = selectD + selectQ + selectT + selectU + selectK + selectC;
+
+//                    System.out.println("======> Tong (D + T + Q) = " + formatNumber(tongDQT) + ", du tinh: " + formatNumber(tongWinDQT));
+//                    System.out.println("======> Tong (D + K) = " + formatNumber(tongDK) + ", du tinh: " + formatNumber(tongWinDK));
+//                    System.out.println("======> Tong (C + K + U) = " + formatNumber(tongUCK) + ", du tinh: " + formatNumber(tongWinUCK));
+//                    System.out.println("======> Tong (C + T) = " + formatNumber(tongCT) + ", du tinh: " + formatNumber(tongWinCT));
+                    System.out.println("======> Tong C  = " + formatNumber(selectC) + ", Du tinh: " +  formatNumber(selectC * 2));
+                    System.out.println("======> Tong D  = " + formatNumber(selectD) + ", Du tinh: " +  formatNumber(selectD * 2));
+                    System.out.println("======> Tong K  = " + formatNumber(selectK) + ", Du tinh: " +  formatNumber(selectK * 2));
+                    System.out.println("======> Tong T  = " + formatNumber(selectT) + ", Du tinh: " +  formatNumber(selectT * 2));
+                    System.out.println("======> Tong  = " + formatNumber(tong) );
+                    text = text + "======> Tong C  = " + formatNumber(selectC) + ", Du tinh: " +  formatNumber(selectC * 2) + "\n"
+                            + "======> Tong D  = " + formatNumber(selectD) + ", Du tinh: " +  formatNumber(selectD * 2) + "\n"
+                            + "======> Tong K  = " + formatNumber(selectK) + ", Du tinh: " +  formatNumber(selectK * 2) + "\n"
+                            + "======> Tong T  = " + formatNumber(selectT) + ", Du tinh: " +  formatNumber(selectT * 2) + "\n"
+                            + "======> Tong  = " + formatNumber(tong);
+                    List<Integer> listSum = new ArrayList<>(List.of(selectC, selectD, selectT, selectK));
+                    Collections.sort(listSum);
+                    if(selectD == 0){
+                        dcApi = new DCTK(0, DctkUtils.DCTK.D, 3000000, 4);
+                        ResponseDctk responseDc = callApi(dcApi);
+                        dcBefore = dcApi;
+                        textDc = textDc + "===================Response DC: " + responseDc.getMessage()  + " ==> " + formatNumber(dcApi.getCoin()) + "\n";
+                        text = text + "selectD = 0, play D" + "\n";
+                        text = text + textDc + "\n";
+                    }
+                    if(selectC == 0){
+                        dcApi = new DCTK(0, DctkUtils.DCTK.C, 3000000, 4);
+                        ResponseDctk responseDc = callApi(dcApi);
+                        dcBefore = dcApi;
+                        textDc = textDc + "===================Response DC: " + responseDc.getMessage()  + " ==> " + formatNumber(dcApi.getCoin()) + "\n";
+                        text = text + "selectC = 0, play C" + "\n";
+                        text = text + textDc + "\n";
+                    }
+                    if(selectT == 0){
+                        tkApi = new DCTK(0, DctkUtils.DCTK.T, 3000000, 4);
+                        ResponseDctk responseTk = callApi(tkApi);
+                        ktBefore = tkApi;
+                        textTk = textTk + "===================Response TK: " + responseTk.getMessage() + " ==> " + formatNumber(tkApi.getCoin()) + "\n";
+                        text = text + "selectT = 0, play T" + "\n";
+                        text = text + textTk + "\n";
+                    }
+                    if(selectK == 0){
+                        tkApi = new DCTK(0, DctkUtils.DCTK.K, 3000000, 4);
+                        ResponseDctk responseTk = callApi(tkApi);
+                        ktBefore = tkApi;
+                        textTk = textTk + "===================Response TK: " + responseTk.getMessage() + " ==> " + formatNumber(tkApi.getCoin()) + "\n";
+                        text = text + "selectK = 0, play K" + "\n";
+                        text = text + textTk + "\n";
+                    }
+                    int playSelect =listSum.get(1);
+                    int checkSelect =listSum.get(2);
+                    int coinPlay = genCoin(playSelect, checkSelect);
+                    String playString = "";
+                    if(playSelect == selectC){
+                        playString = "C";
+                    }else if(playSelect == selectD){
+                        playString = "D";
+                    }else if(playSelect == selectT){
+                        playString = "T";
+                    }else if(playSelect == selectK){
+                        playString = "K";
+                    }
+                    boolean activeCount = false;
+                    if(countSuccess == 0){
+                        activeCount = true;
+                    }
+
+//                    text = text + "======> Tong (D + T + Q) = " + formatNumber(tongDQT) + ", du tinh: " + formatNumber(tongWinDQT) + "\n"
+//                            + "======> Tong (D + K) = " + formatNumber(tongDK) + ", du tinh: " + formatNumber(tongWinDK) + "\n"
+//                            + "======> Tong (C + K + U) = " + formatNumber(tongUCK) + ", du tinh: " + formatNumber(tongWinUCK) + "\n"
+//                            + "======> Tong (C + T) = " + formatNumber(tongCT) + ", du tinh: " + formatNumber(tongWinCT) + "\n"
+//                            + "======> Tong  = " + formatNumber(tong) + "\n"
+//                            + "============Predict play: "+ playString + "\n";
+                    if (Objects.equals(playString, "D")) {
+                        playDC = "D";
+                        dcApi = new DCTK(0, DctkUtils.DCTK.D, DctkUtils.DCTK.coinLogicNew + coinPlay, 4);
+                        ResponseDctk responseDc = callApi(dcApi);
+                        dcBefore = dcApi;
+                        textDc = textDc + "===================Response DC: " + responseDc.getMessage()  + " ==> " + formatNumber(dcApi.getCoin()) + "\n";
+                        text = text + textDc + "\n";
+                    } else if (Objects.equals(playString, "C")) {
+                        playDC = "C";
+                        dcApi = new DCTK(0, DctkUtils.DCTK.C, DctkUtils.DCTK.coinLogicNew + coinPlay, 4);
+                        ResponseDctk responseDc = callApi(dcApi);
+                        dcBefore = dcApi;
+                        textDc = textDc + "===================Response DC: " + responseDc.getMessage()  + " ==> " + formatNumber(dcApi.getCoin()) + "\n";
+                        text = text + textDc + "\n";
+                    } else if (Objects.equals(playString, "T")) {
+                        playTK = "T";
+                        tkApi = new DCTK(0, DctkUtils.DCTK.T, DctkUtils.DCTK.coinLogicNew + coinPlay, 4);
+                        ResponseDctk responseTk = callApi(tkApi);
+                        ktBefore = tkApi;
+                        textTk = textTk + "===================Response TK: " + responseTk.getMessage() + " ==> " + formatNumber(tkApi.getCoin()) + "\n";
+                        text = text + textTk + "\n";
+                    } else if (Objects.equals(playString, "K")) {
+                        playTK = "K";
+                        tkApi = new DCTK(0, DctkUtils.DCTK.K, DctkUtils.DCTK.coinLogicNew + coinPlay, 4);
+                        ResponseDctk responseTk = callApi(tkApi);
+                        ktBefore = tkApi;
+                        textTk = textTk + "===================Response TK: " + responseTk.getMessage() + " ==> " + formatNumber(tkApi.getCoin()) + "\n";
+                        text = text + textTk + "\n";
+                    } else {
+                        Thread.sleep(30 * 1000);
+                        sendMail("Next continue");
+                        continue;
+                    }
+                    sendMail(text);
+                    System.out.println(text);
+                    text = "";
+                    Thread.sleep(30 * 1000);
+                    continue;
+                }
+
                 if(activeLogicNew){
                     Integer idPrev =  getHistory().getHistories().get(0).getId();
                     int countSuccess = 0;
@@ -522,7 +696,7 @@ public class DctkService {
                             }
                         }
                         if (countSuccess ==0 ){
-                            text = text + "==============> Lose van truoc";
+                            text = text + "==============> Lose van truoc" + "\n";
                         }
                     }
                     List<String> strSum = new ArrayList<>();
@@ -1125,5 +1299,24 @@ public class DctkService {
         // Tạo số ngẫu nhiên trong khoảng từ 900000 đến 1200000
         int randomNumber = lowerBound + random.nextInt(upperBound - lowerBound + 1);
         return randomNumber;
+    }
+    public int genCoin(int coin, int coinCheck){
+        int check = coinCheck - coin;
+//        if(check < 1000000){
+//            return 500000;
+//        }
+//        if(check < 2000000 && check > 1000000){
+//            return 1000000;
+//        }
+//        if(check < 3000000 && check > 2000000){
+//            return 1500000;
+//        }
+        int result;
+        int coinRandom = 0;
+        do{
+            coinRandom = getCoinLogic();
+            result = coin + coinRandom;
+        }while (result > coinCheck);
+        return coinRandom;
     }
 }

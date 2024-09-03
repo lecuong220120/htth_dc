@@ -1,6 +1,9 @@
 package com.example.demo.Obj;
 
+import com.example.demo.Service.DctkService;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.text.DecimalFormat;
 
 public class Balance {
     @JsonProperty("id")
@@ -133,6 +136,29 @@ public class Balance {
 
     @Override
     public String toString() {
-        return " Hien tai: =" + after + ", play = "+ change;
+        return " Hien tai: =" + formatNumber(after) + ", play = "+ formatNumber(change);
+    }
+    public String formatNumber(int number) {
+        DecimalFormat df;
+        boolean isNegative = number < 0;
+        int absNumber = Math.abs(number);
+
+        if (absNumber < 1000) {
+            // Không cần định dạng cho số nhỏ hơn 1000
+            return (isNegative ? "-" : "") + absNumber;
+        } else if (absNumber < 1_000_000) {
+            // Định dạng với hàng nghìn
+            df = new DecimalFormat("#,###");
+        } else if (absNumber < 1_000_000_000) {
+            // Định dạng với hàng triệu
+            df = new DecimalFormat("#,###.##M");
+            return (isNegative ? "-" : "") + df.format(absNumber / 1_000_000.0);
+        } else {
+            // Định dạng với hàng tỷ
+            df = new DecimalFormat("#,###.##B");
+            return (isNegative ? "-" : "") + df.format(absNumber / 1_000_000_000.0);
+        }
+
+        return (isNegative ? "-" : "") + df.format(absNumber);
     }
 }
