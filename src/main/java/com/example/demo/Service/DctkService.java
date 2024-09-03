@@ -540,11 +540,11 @@ public class DctkService {
 //                    System.out.println("======> Tong (D + K) = " + formatNumber(tongDK) + ", du tinh: " + formatNumber(tongWinDK));
 //                    System.out.println("======> Tong (C + K + U) = " + formatNumber(tongUCK) + ", du tinh: " + formatNumber(tongWinUCK));
 //                    System.out.println("======> Tong (C + T) = " + formatNumber(tongCT) + ", du tinh: " + formatNumber(tongWinCT));
-//                    System.out.println("======> Tong C  = " + formatNumber(selectC) + ", Du tinh: " +  formatNumber(selectC * 2));
-//                    System.out.println("======> Tong D  = " + formatNumber(selectD) + ", Du tinh: " +  formatNumber(selectD * 2));
-//                    System.out.println("======> Tong K  = " + formatNumber(selectK) + ", Du tinh: " +  formatNumber(selectK * 2));
-//                    System.out.println("======> Tong T  = " + formatNumber(selectT) + ", Du tinh: " +  formatNumber(selectT * 2));
-//                    System.out.println("======> Tong  = " + formatNumber(tong) );
+                    System.out.println("======> Tong C  = " + formatNumber(selectC) + ", Du tinh: " +  formatNumber(selectC * 2));
+                    System.out.println("======> Tong D  = " + formatNumber(selectD) + ", Du tinh: " +  formatNumber(selectD * 2));
+                    System.out.println("======> Tong K  = " + formatNumber(selectK) + ", Du tinh: " +  formatNumber(selectK * 2));
+                    System.out.println("======> Tong T  = " + formatNumber(selectT) + ", Du tinh: " +  formatNumber(selectT * 2));
+                    System.out.println("======> Tong  = " + formatNumber(tong) );
 
                     List<Integer> listSum = new ArrayList<>(List.of(tongWinDK, tongWinCT, tongWinDQT, tongWinUCK));
                     Collections.sort(listSum);
@@ -615,7 +615,7 @@ public class DctkService {
                             + "============Predict play: "+ playString + "\n";
                     int coinPlay = getCoinLogic();
                     if(countSuccess == 0){
-                        coinPlay = 400000;
+                        coinPlay = 100000;
                     }
                     if (Objects.equals(playString, "D")) {
                         playDC = "D";
