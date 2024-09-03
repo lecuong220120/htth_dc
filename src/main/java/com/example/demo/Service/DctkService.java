@@ -6,6 +6,7 @@ import com.example.demo.DTO.LoginDTO;
 import com.example.demo.Obj.*;
 import com.example.demo.Utils.DctkUtils;
 import com.example.demo.websocket.WebSocketScraper;
+import com.example.demo.websocket.WebSocketThreadNso;
 import jakarta.mail.*;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
@@ -441,6 +442,33 @@ public class DctkService {
             throw new RuntimeException(e);
         }
         return time;
+    }
+    public static TimeSocket timeSocket = null;
+    public static WebSocketThreadNso clientNso = null;
+
+    public void getTimeCurrent1(){
+        try {
+            timeSocket = null;
+            URI uri = new URI("wss://game-server.nsocltx.com/socket.io/?EIO=3&transport=websocket");
+            clientNso = new WebSocketThreadNso(uri);
+            clientNso.connect();
+            if(clientNso.isClosed()){
+                System.out.println("========retry connected");
+                clientNso.connect();
+            }
+            boolean check = true;
+            int count = 0;
+            while (check){
+                if(timeSocket == null || timeSocket.getTime() == 120 || timeSocket.getTime() < 25){
+                    Thread.sleep(100);
+                }else{
+                   check = false;
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        clientNso.close();
     }
     public long convertToMilliseconds(String time) {
         // Kiểm tra định dạng chuỗi thời gian
@@ -947,6 +975,208 @@ public class DctkService {
         }
 
     }
+    public void playVersion3() throws InterruptedException {
+        try{
+            while (isRun){
+                Integer selectD = 0;
+                Integer selectC = 0;
+                Integer selectT = 0;
+                Integer selectK = 0;
+                Integer selectU = 0;
+                Integer selectQ = 0;
+
+                if(!getNewSession(true)){
+                    continue;
+                }
+                //get time
+                getTimeCurrent1();
+                int minutes = timeSocket.getTime() / 60;
+                int remainingSeconds = timeSocket.getTime() % 60;
+                String timeString = String.format("%d:%02d", minutes, remainingSeconds);
+                System.out.println("=============Time current: " + timeString);
+                Long timeCurrent = Long.valueOf(timeSocket.getTime()) * 1000;
+                Long timeEnd = System.currentTimeMillis() + timeCurrent - (23 * 1000);
+                connectSocket();
+                while(System.currentTimeMillis() < timeEnd){
+                    Thread.sleep(500);
+                }
+                String textDc = "";
+                String textTk = "";
+                DCTK dcApi = null;
+                DCTK tkApi = null;
+                if(CollectionUtils.isEmpty(listMapPlayer)){
+                    System.out.println("========playSet is empty");
+                    continue;
+                }
+                List<Player> players = new ArrayList<>();
+                for (Map.Entry<Integer, Player> entry : listMapPlayer.entrySet()) {
+                    if(WebSocketScraper.isBefore(entry.getValue().getTime(), DctkService.historyBefore)){
+                        players.add(entry.getValue());
+                    }
+                }
+                System.out.println("====================Player size(): " + players.size());
+                for (int i =0; i < players.size(); i++){
+                    if(players.get(i).getSelection() == DctkUtils.DCTK.D){
+                        selectD = selectD + players.get(i).getCoin();
+                    }else if(players.get(i).getSelection() == DctkUtils.DCTK.C){
+                        selectC = selectC + players.get(i).getCoin();
+                    }else if(players.get(i).getSelection() == DctkUtils.DCTK.T){
+                        selectT = selectT + players.get(i).getCoin();
+                    }else if(players.get(i).getSelection() == DctkUtils.DCTK.K){
+                        selectK = selectK + players.get(i).getCoin();
+                    }else if(players.get(i).getSelection() == DctkUtils.DCTK.U){
+                        selectU = selectU + players.get(i).getCoin();
+                    }else if(players.get(i).getSelection() == DctkUtils.DCTK.Q){
+                        selectQ = selectQ + players.get(i).getCoin();
+                    }
+                }
+                System.out.println("==========Active logic new 1:" + activeLogicNew1);
+
+                if(activeLogicNew1){
+                    Integer idPrev =  getHistory().getHistories().get(0).getId();
+                    int countSuccess = 0;
+                    List<Balance> balances = getBalance().stream().
+                            filter(item -> item.getNote().indexOf(idPrev.toString()) != -1)
+                            .collect(Collectors.toList());
+                    if(!CollectionUtils.isEmpty(balances)){
+                        for (Balance balance : balances) {
+                            if(balance.getNote().indexOf("Tham gia phiên") != -1){
+                            }
+                            if(balance.getNote().indexOf("Trao thưởng phiên") != -1){
+                                countSuccess++;
+                                text = text + balance.toString() + "\n";
+                                if(balance.getAfter() > DctkUtils.DCTK.coinDrawl){
+                                    Drawl drawl = new Drawl();
+                                    drawl.setCharacter("tiktokab");
+                                    drawl.setCoin(20000000);
+                                    drawl.setPassword("admadm");
+                                    drawl.setAccount("avatarlands");
+                                    drawl.setIdServer("4");
+                                    callDrawalApi(drawl);
+                                }
+                            }else{
+                            }
+                        }
+                        if (countSuccess ==0 ){
+                            text = text + "==============> Lose van truoc" + "\n";
+                        }
+                    }
+                    List<String> strSum = new ArrayList<>();
+                    Integer tongDQT = selectD + selectQ + selectT;
+                    Integer tongWinDQT = selectD * 2 + selectQ * 3 + selectT * 2;
+                    Integer tongUCK = selectU + selectC + selectK;
+                    Integer tongWinUCK = selectU * 3 + selectC * 2+ selectK * 2;
+                    Integer tongDK = selectD + selectK;
+                    Integer tongWinDK = selectD * 2 + selectK * 2;
+                    Integer tongCT = selectC + selectT ;
+                    Integer tongWinCT = selectC * 2 + selectT * 2;
+                    Integer tong = selectD + selectQ + selectT + selectU + selectK + selectC;
+
+//                    System.out.println("======> Tong (D + T + Q) = " + formatNumber(tongDQT) + ", du tinh: " + formatNumber(tongWinDQT));
+//                    System.out.println("======> Tong (D + K) = " + formatNumber(tongDK) + ", du tinh: " + formatNumber(tongWinDK));
+//                    System.out.println("======> Tong (C + K + U) = " + formatNumber(tongUCK) + ", du tinh: " + formatNumber(tongWinUCK));
+//                    System.out.println("======> Tong (C + T) = " + formatNumber(tongCT) + ", du tinh: " + formatNumber(tongWinCT));
+                    System.out.println("======> Tong C  = " + formatNumber(selectC) + ", Du tinh: " +  formatNumber(selectC * 2));
+                    System.out.println("======> Tong D  = " + formatNumber(selectD) + ", Du tinh: " +  formatNumber(selectD * 2));
+                    System.out.println("======> Tong K  = " + formatNumber(selectK) + ", Du tinh: " +  formatNumber(selectK * 2));
+                    System.out.println("======> Tong T  = " + formatNumber(selectT) + ", Du tinh: " +  formatNumber(selectT * 2));
+                    System.out.println("======> Tong  = " + formatNumber(tong) );
+                    text = text + "======> Tong C  = " + formatNumber(selectC) + ", Du tinh: " +  formatNumber(selectC * 2) + "\n"
+                            + "======> Tong D  = " + formatNumber(selectD) + ", Du tinh: " +  formatNumber(selectD * 2) + "\n"
+                            + "======> Tong K  = " + formatNumber(selectK) + ", Du tinh: " +  formatNumber(selectK * 2) + "\n"
+                            + "======> Tong T  = " + formatNumber(selectT) + ", Du tinh: " +  formatNumber(selectT * 2) + "\n"
+                            + "======> Tong  = " + formatNumber(tong);
+                    List<Integer> listSum = new ArrayList<>(List.of(selectC, selectD, selectT, selectK));
+                    Collections.sort(listSum);
+                    if(selectD == 0){
+                        dcApi = new DCTK(0, DctkUtils.DCTK.D, 3000000, 4);
+                        ResponseDctk responseDc = callApi(dcApi);
+                        dcBefore = dcApi;
+                        textDc = textDc + "===================Response DC: " + responseDc.getMessage()  + " ==> " + formatNumber(dcApi.getCoin()) + "\n";
+                        text = text + "selectD = 0, play D" + "\n";
+                        text = text + textDc + "\n";
+                    }
+                    if(selectC == 0){
+                        dcApi = new DCTK(0, DctkUtils.DCTK.C, 3000000, 4);
+                        ResponseDctk responseDc = callApi(dcApi);
+                        dcBefore = dcApi;
+                        textDc = textDc + "===================Response DC: " + responseDc.getMessage()  + " ==> " + formatNumber(dcApi.getCoin()) + "\n";
+                        text = text + "selectC = 0, play C" + "\n";
+                        text = text + textDc + "\n";
+                    }
+                    if(selectT == 0){
+                        tkApi = new DCTK(0, DctkUtils.DCTK.T, 3000000, 4);
+                        ResponseDctk responseTk = callApi(tkApi);
+                        ktBefore = tkApi;
+                        textTk = textTk + "===================Response TK: " + responseTk.getMessage() + " ==> " + formatNumber(tkApi.getCoin()) + "\n";
+                        text = text + "selectT = 0, play T" + "\n";
+                        text = text + textTk + "\n";
+                    }
+                    if(selectK == 0){
+                        tkApi = new DCTK(0, DctkUtils.DCTK.K, 3000000, 4);
+                        ResponseDctk responseTk = callApi(tkApi);
+                        ktBefore = tkApi;
+                        textTk = textTk + "===================Response TK: " + responseTk.getMessage() + " ==> " + formatNumber(tkApi.getCoin()) + "\n";
+                        text = text + "selectK = 0, play K" + "\n";
+                        text = text + textTk + "\n";
+                    }
+                    int playSelect =listSum.get(1);
+                    int checkSelect =listSum.get(2);
+                    int coinPlay = genCoin(playSelect, checkSelect);
+                    String playString = "";
+                    if(playSelect == selectC){
+                        playString = "C";
+                    }else if(playSelect == selectD){
+                        playString = "D";
+                    }else if(playSelect == selectT){
+                        playString = "T";
+                    }else if(playSelect == selectK){
+                        playString = "K";
+                    }
+                    if (Objects.equals(playString, "D")) {
+                        playDC = "D";
+                        dcApi = new DCTK(0, DctkUtils.DCTK.D, DctkUtils.DCTK.coinLogicNew + coinPlay, 4);
+                        ResponseDctk responseDc = callApi(dcApi);
+                        dcBefore = dcApi;
+                        textDc = textDc + "===================Response DC: " + responseDc.getMessage()  + " ==> " + formatNumber(dcApi.getCoin()) + "\n";
+                        text = text + textDc + "\n";
+                    } else if (Objects.equals(playString, "C")) {
+                        playDC = "C";
+                        dcApi = new DCTK(0, DctkUtils.DCTK.C, DctkUtils.DCTK.coinLogicNew + coinPlay, 4);
+                        ResponseDctk responseDc = callApi(dcApi);
+                        dcBefore = dcApi;
+                        textDc = textDc + "===================Response DC: " + responseDc.getMessage()  + " ==> " + formatNumber(dcApi.getCoin()) + "\n";
+                        text = text + textDc + "\n";
+                    } else if (Objects.equals(playString, "T")) {
+                        playTK = "T";
+                        tkApi = new DCTK(0, DctkUtils.DCTK.T, DctkUtils.DCTK.coinLogicNew + coinPlay, 4);
+                        ResponseDctk responseTk = callApi(tkApi);
+                        ktBefore = tkApi;
+                        textTk = textTk + "===================Response TK: " + responseTk.getMessage() + " ==> " + formatNumber(tkApi.getCoin()) + "\n";
+                        text = text + textTk + "\n";
+                    } else if (Objects.equals(playString, "K")) {
+                        playTK = "K";
+                        tkApi = new DCTK(0, DctkUtils.DCTK.K, DctkUtils.DCTK.coinLogicNew + coinPlay, 4);
+                        ResponseDctk responseTk = callApi(tkApi);
+                        ktBefore = tkApi;
+                        textTk = textTk + "===================Response TK: " + responseTk.getMessage() + " ==> " + formatNumber(tkApi.getCoin()) + "\n";
+                        text = text + textTk + "\n";
+                    } else {
+                        Thread.sleep(30 * 1000);
+                        sendMail("Next continue");
+                        continue;
+                    }
+                    sendMail(text);
+                    System.out.println(text);
+                    text = "";
+                    Thread.sleep(30 * 1000);
+                }
+            }
+        }catch (Exception e){
+            System.out.println(""+e.getMessage());
+        }
+
+    }
     static SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
     public Boolean getNewSession(boolean isActive){
         if(isActive){
@@ -1294,7 +1524,7 @@ public class DctkService {
 
         // Xác định khoảng giá trị
         int lowerBound = 1500000;
-        int upperBound = 3000000;
+        int upperBound = 2500000;
 
         // Tạo số ngẫu nhiên trong khoảng từ 900000 đến 1200000
         int randomNumber = lowerBound + random.nextInt(upperBound - lowerBound + 1);
@@ -1302,17 +1532,17 @@ public class DctkService {
     }
     public int genCoin(int coin, int coinCheck){
         int check = coinCheck - coin;
-//        if(check < 1000000){
-//            return 500000;
-//        }
-//        if(check < 2000000 && check > 1000000){
-//            return 1000000;
-//        }
-//        if(check < 3000000 && check > 2000000){
-//            return 1500000;
-//        }
+        if(check < 1000000){
+            return 500000;
+        }
+        if(check < 2000000 && check > 1000000){
+            return 1000000;
+        }
+        if(check < 3000000 && check > 2000000){
+            return 1500000;
+        }
         int result;
-        int coinRandom = 0;
+        int coinRandom;
         do{
             coinRandom = getCoinLogic();
             result = coin + coinRandom;

@@ -17,12 +17,11 @@ public class DctkController {
     private DctkService dctkService;
     @GetMapping("/run")
     public String sendEmail() {
-        dctkService.connectSocket();
         ExecutorService executorService = Executors.newFixedThreadPool(1);
         executorService.submit(() -> {
             try {
                 dctkService.isFirstRun = true;
-                dctkService.playVersion2();
+                dctkService.playVersion3();
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
