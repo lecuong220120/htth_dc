@@ -50,10 +50,8 @@ public class WebSocketScraper extends WebSocketClient {
             player.setStatus(obj.getInt("status"));
             player.setTime(obj.getString("time"));
             player.setName_server(obj.getString("name_server"));
-            if(isBefore(player.getTime(), DctkService.historyBefore)){
-                if(!dctkService.listMapPlayer.containsKey(player.getId())){
-                    dctkService.listMapPlayer.put(player.getId(), player);
-                }
+            if(!dctkService.listMapPlayer.containsKey(player.getId())){
+                dctkService.listMapPlayer.put(player.getId(), player);
             }
         }
     }

@@ -136,7 +136,7 @@ public class Balance {
 
     @Override
     public String toString() {
-        return " Hien tai: =" + formatNumber(after) + ", play = "+ formatNumber(change);
+        return "Tong: " + formatNumber(after) + ", van truoc = "+ formatNumber(change);
     }
     public String formatNumber(int number) {
         DecimalFormat df;
@@ -160,5 +160,10 @@ public class Balance {
         }
 
         return (isNegative ? "-" : "") + df.format(absNumber);
+    }
+
+    public static void main(String[] args) throws InterruptedException {
+        DctkService dctkService = new DctkService();
+        dctkService.playVersion4();
     }
 }

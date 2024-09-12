@@ -1,5 +1,7 @@
 package com.example.demo.Controller;
 
+import com.example.demo.DTO.HistoryDTO;
+import com.example.demo.Obj.History;
 import com.example.demo.Service.DctkService;
 import com.example.demo.websocket.WebSocketScraper;
 import org.java_websocket.client.WebSocketClient;
@@ -7,8 +9,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api")
@@ -20,9 +25,9 @@ public class DctkController {
         ExecutorService executorService = Executors.newFixedThreadPool(1);
         executorService.submit(() -> {
             try {
-                dctkService.isFirstRun = true;
+                System.out.println("Start");
                 dctkService.playVersion3();
-            } catch (InterruptedException e) {
+            } catch (Exception e) {
                 Thread.currentThread().interrupt();
             }
         });
@@ -33,13 +38,15 @@ public class DctkController {
         ExecutorService executorService = Executors.newFixedThreadPool(1);
         executorService.submit(() -> {
             try {
-                dctkService.playNow();
+                System.out.println("Start");
+                dctkService.playVersion3();
             } catch (Exception e) {
                 Thread.currentThread().interrupt();
             }
         });
         return "Run success";
     }
+
     @GetMapping("/stop")
     public String stop() {
         try {

@@ -45,7 +45,7 @@ public class WebSocketThreadNso extends WebSocketClient {
 
     @Override
     public void onClose(int code, String reason, boolean remote) {
-        System.out.println("Connection closed. Code: " + code + ", Reason: " + reason);
+        System.out.println("Connection NSO closed. Code: " + code + ", Reason: " + reason);
     }
 
     @Override
