@@ -15,7 +15,10 @@ public class DctkUtils {
         public static int rangePlay = 10000000;
         public static int count = 2;
         public static int coinRange = 1000000;
-        public static int coinDrawl = 40000000;
-        public static int check = 3;
+        public static int coinDrawl = 120000000;
+        public static int coinDrawl1 = 40000000;
+        public static int check = 5;
+        public static int range1 = 1000000;
+        public static int range2 = 2000000;
     }
 }

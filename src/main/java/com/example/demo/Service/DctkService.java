@@ -46,7 +46,7 @@ public class DctkService {
     private static String urlToken = "https://api.dctk.me/api/login";
     private static String urlPlay = "https://api.dctk.me/api/user/join";
     private static String urlBalance = "https://api.dctk.me/api/user/balance-history?page=1&limit=20";
-    private static  String userName = "nenene";
+    private static  String userName = "animehay";
     private static  String password = "Lecuong220120a@";
     private static String token = "";
     private static String to = "cutoongacteo@gmail.com";
@@ -146,7 +146,6 @@ public class DctkService {
         }
 
     }
-    static int coinBefore = 0;
     public Integer changeCoinDC(List<Integer> playSet, List<Integer> playWin,Integer coin){
         if(CollectionUtils.isEmpty(playSet) || CollectionUtils.isEmpty(playWin)) return 0;
         if(Objects.equals(playSet.get(0), playWin.get(0))){
@@ -444,50 +443,6 @@ public class DctkService {
         isChangeProcessBigger = !isChangeProcessBigger;
         System.out.println("After change: "+ isChangeProcessBigger);
     }
-    public static boolean isFirstRun = false;
-    public String getTimeCurrent(){
-        String url = "https://dctk.me/";
-        String time = null;
-        try {
-            String serviceUrl = "http://localhost:3000/fetch-html?url=" + URLEncoder.encode(url, "UTF-8");
-            String checkString = "<strong class=\"text-[#333333]\">Thời gian:</strong></div><div class=\"col-span-2 text-center\"><span class=\"text-[#333333]\">";
-            boolean check = true;
-            CloseableHttpClient httpClient = HttpClients.createDefault();
-            Integer count = 0;
-            while (check){
-                try {
-                    HttpGet request = new HttpGet(serviceUrl);
-                    try (CloseableHttpResponse response = httpClient.execute(request)) {
-                        String html = EntityUtils.toString(response.getEntity());
-                        if(html.indexOf(checkString) != -1){
-                            time = html.substring(html.indexOf(checkString) + 121, html.indexOf(checkString) + 121 + 5);
-                            if(isDisConnect(client)){
-                                while (isDisConnect(client)){
-                                    sendMail("Socket is disconnect. ReConnect socket");
-                                    connectSocket();
-                                    Thread.sleep(1000);
-                                }
-                            }
-                            System.out.println("Time current " + count++ +": "+ time);
-                            if (!Objects.equals(time, "02:00") && !StringUtils.isEmpty(time)){
-                                System.out.println("Time current: "+ time);
-                                check = false;
-//                                sycnMail(historyBefore);
-                                moneyChangeDC = 0;
-                                moneyChangeTK = 0;
-                            }
-                            Thread.sleep(500);
-                        }
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException(e);
-        }
-        return time;
-    }
     public static TimeSocket timeSocket = null;
     public static WebSocketThreadNso clientNso = null;
 
@@ -518,513 +473,13 @@ public class DctkService {
         }
         clientNso.close();
     }
-    public long convertToMilliseconds(String time) {
-        // Kiểm tra định dạng chuỗi thời gian
-        if (time == null || !time.matches("\\d{2}:\\d{2}")) {
-            throw new IllegalArgumentException("Invalid time format. Use 'mm:ss'.");
-        }
-
-        // Tách phút và giây
-        String[] parts = time.split(":");
-        int minutes = Integer.parseInt(parts[0]);
-        int seconds = Integer.parseInt(parts[1]);
-
-        // Chuyển đổi thành mili giây
-        long milliseconds = (minutes * 60 * 1000) + (seconds * 1000);
-
-        return milliseconds;
-    }
-    public static Long timeEnd = null;
-    public static boolean isPlayDc = true;
-    public static boolean isPlayTk = true;
     public static boolean isChangeProcessBigger = false;
     public static boolean isChangeProcess1 = true;
     public static int countIsChangeProcessBigger = 0;
     public static int countIsChangeProcess1 = 0;
     public static DCTK dcBefore;
     public static DCTK ktBefore;
-    public static boolean checkDc;
-    public static boolean checkTk;
-    public static boolean activeLogicNew = false;
     public static boolean activeLogicNew1 = true;
-//    public static int status = 0;
-    public static  int afterBalance = 0;
-    public static List<String> DQT = new ArrayList<>(List.of("D", "T", "Q"));
-    public static List<String> UCK = new ArrayList<>(List.of("C", "K", "U"));
-    public static List<String> CT = new ArrayList<>(List.of("C", "T"));
-    public static List<String> DK = new ArrayList<>(List.of("D", "K"));
-    public void playVersion2() throws InterruptedException {
-        try{
-            while (isRun){
-                Integer selectD = 0;
-                Integer selectC = 0;
-                Integer selectT = 0;
-                Integer selectK = 0;
-                Integer selectU = 0;
-                Integer selectQ = 0;
-
-                List<String> listPredictMost = new ArrayList<>();
-                if(!getNewSession(true)){
-                    continue;
-                }
-                Long timeCurrent = convertToMilliseconds(getTimeCurrent());
-                Long timeEnd = System.currentTimeMillis() + timeCurrent - (26 * 1000);
-                while(System.currentTimeMillis() < timeEnd){
-                    Thread.sleep(500);
-                }
-                String textDc = "";
-                String textTk = "";
-                DCTK dcApi = null;
-                DCTK tkApi = null;
-                if(CollectionUtils.isEmpty(listMapPlayer)){
-                    System.out.println("========playSet is empty");
-                    continue;
-                }
-                List<Player> players = new ArrayList<>();
-                for (Map.Entry<Integer, Player> entry : listMapPlayer.entrySet()) {
-                    if(WebSocketScraper.isBefore(entry.getValue().getTime(), DctkService.historyBefore)){
-                        players.add(entry.getValue());
-//                        System.out.println("player: " + entry.getValue().getName() + ", coin: "+ entry.getValue().getCoin());
-                    }
-                }
-                System.out.println("====================Player size(): " + players.size());
-                for (int i =0; i < players.size(); i++){
-                    if(players.get(i).getSelection() == DctkUtils.DCTK.D){
-                        selectD = selectD + players.get(i).getCoin();
-                    }else if(players.get(i).getSelection() == DctkUtils.DCTK.C){
-                        selectC = selectC + players.get(i).getCoin();
-                    }else if(players.get(i).getSelection() == DctkUtils.DCTK.T){
-                        selectT = selectT + players.get(i).getCoin();
-                    }else if(players.get(i).getSelection() == DctkUtils.DCTK.K){
-                        selectK = selectK + players.get(i).getCoin();
-                    }else if(players.get(i).getSelection() == DctkUtils.DCTK.U){
-                        selectU = selectU + players.get(i).getCoin();
-                    }else if(players.get(i).getSelection() == DctkUtils.DCTK.Q){
-                        selectQ = selectQ + players.get(i).getCoin();
-                    }
-                }
-                System.out.println("==========Active logic new :" + activeLogicNew);
-
-                if(activeLogicNew1){
-                    Integer idPrev =  getHistory().getHistories().get(0).getId();
-                    int countSuccess = 0;
-                    List<Balance> balances = getBalance().stream().
-                            filter(item -> item.getNote().indexOf(idPrev.toString()) != -1)
-                            .collect(Collectors.toList());
-                    if(!CollectionUtils.isEmpty(balances)){
-                        for (Balance balance : balances) {
-                            if(balance.getNote().indexOf("Tham gia phiên") != -1){
-                            }
-                            if(balance.getNote().indexOf("Trao thưởng phiên") != -1){
-                                countSuccess++;
-                                text = text + balance.toString() + "\n";
-                                if(balance.getAfter() > DctkUtils.DCTK.coinDrawl){
-                                    Drawl drawl = new Drawl();
-                                    drawl.setCharacter("tiktokab");
-                                    drawl.setCoin(20000000);
-                                    drawl.setPassword("admadm");
-                                    drawl.setAccount("avatarlands");
-                                    drawl.setIdServer("4");
-                                    callDrawalApi(drawl);
-                                }
-                            }else{
-                            }
-                        }
-                        if (countSuccess ==0 ){
-                            text = text + "==============> Lose van truoc" + "\n";
-                        }
-                    }
-                    List<String> strSum = new ArrayList<>();
-                    Integer tongDQT = selectD + selectQ + selectT;
-                    Integer tongWinDQT = selectD * 2 + selectQ * 3 + selectT * 2;
-                    Integer tongUCK = selectU + selectC + selectK;
-                    Integer tongWinUCK = selectU * 3 + selectC * 2+ selectK * 2;
-                    Integer tongDK = selectD + selectK;
-                    Integer tongWinDK = selectD * 2 + selectK * 2;
-                    Integer tongCT = selectC + selectT ;
-                    Integer tongWinCT = selectC * 2 + selectT * 2;
-                    Integer tong = selectD + selectQ + selectT + selectU + selectK + selectC;
-
-//                    System.out.println("======> Tong (D + T + Q) = " + formatNumber(tongDQT) + ", du tinh: " + formatNumber(tongWinDQT));
-//                    System.out.println("======> Tong (D + K) = " + formatNumber(tongDK) + ", du tinh: " + formatNumber(tongWinDK));
-//                    System.out.println("======> Tong (C + K + U) = " + formatNumber(tongUCK) + ", du tinh: " + formatNumber(tongWinUCK));
-//                    System.out.println("======> Tong (C + T) = " + formatNumber(tongCT) + ", du tinh: " + formatNumber(tongWinCT));
-                    System.out.println("======> Tong C  = " + formatNumber(selectC) + ", Du tinh: " +  formatNumber(selectC * 2));
-                    System.out.println("======> Tong D  = " + formatNumber(selectD) + ", Du tinh: " +  formatNumber(selectD * 2));
-                    System.out.println("======> Tong K  = " + formatNumber(selectK) + ", Du tinh: " +  formatNumber(selectK * 2));
-                    System.out.println("======> Tong T  = " + formatNumber(selectT) + ", Du tinh: " +  formatNumber(selectT * 2));
-                    System.out.println("======> Tong  = " + formatNumber(tong) );
-                    text = text + "======> Tong C  = " + formatNumber(selectC) + ", Du tinh: " +  formatNumber(selectC * 2) + "\n"
-                            + "======> Tong D  = " + formatNumber(selectD) + ", Du tinh: " +  formatNumber(selectD * 2) + "\n"
-                            + "======> Tong K  = " + formatNumber(selectK) + ", Du tinh: " +  formatNumber(selectK * 2) + "\n"
-                            + "======> Tong T  = " + formatNumber(selectT) + ", Du tinh: " +  formatNumber(selectT * 2) + "\n"
-                            + "======> Tong  = " + formatNumber(tong);
-                    List<Integer> listSum = new ArrayList<>(List.of(selectC, selectD, selectT, selectK));
-                    Collections.sort(listSum);
-                    if(selectD == 0){
-                        dcApi = new DCTK(0, DctkUtils.DCTK.D, 3000000, 4);
-                        ResponseDctk responseDc = callApi(dcApi);
-                        dcBefore = dcApi;
-                        textDc = textDc + "===================Response DC: " + responseDc.getMessage()  + " ==> " + formatNumber(dcApi.getCoin()) + "\n";
-                        text = text + "selectD = 0, play D" + "\n";
-                        text = text + textDc + "\n";
-                    }
-                    if(selectC == 0){
-                        dcApi = new DCTK(0, DctkUtils.DCTK.C, 3000000, 4);
-                        ResponseDctk responseDc = callApi(dcApi);
-                        dcBefore = dcApi;
-                        textDc = textDc + "===================Response DC: " + responseDc.getMessage()  + " ==> " + formatNumber(dcApi.getCoin()) + "\n";
-                        text = text + "selectC = 0, play C" + "\n";
-                        text = text + textDc + "\n";
-                    }
-                    if(selectT == 0){
-                        tkApi = new DCTK(0, DctkUtils.DCTK.T, 3000000, 4);
-                        ResponseDctk responseTk = callApi(tkApi);
-                        ktBefore = tkApi;
-                        textTk = textTk + "===================Response TK: " + responseTk.getMessage() + " ==> " + formatNumber(tkApi.getCoin()) + "\n";
-                        text = text + "selectT = 0, play T" + "\n";
-                        text = text + textTk + "\n";
-                    }
-                    if(selectK == 0){
-                        tkApi = new DCTK(0, DctkUtils.DCTK.K, 3000000, 4);
-                        ResponseDctk responseTk = callApi(tkApi);
-                        ktBefore = tkApi;
-                        textTk = textTk + "===================Response TK: " + responseTk.getMessage() + " ==> " + formatNumber(tkApi.getCoin()) + "\n";
-                        text = text + "selectK = 0, play K" + "\n";
-                        text = text + textTk + "\n";
-                    }
-                    int playSelect =listSum.get(1);
-                    int checkSelect =listSum.get(2);
-                    int coinPlay = genCoin(playSelect, checkSelect);
-                    String playString = "";
-                    if(playSelect == selectC){
-                        playString = "C";
-                    }else if(playSelect == selectD){
-                        playString = "D";
-                    }else if(playSelect == selectT){
-                        playString = "T";
-                    }else if(playSelect == selectK){
-                        playString = "K";
-                    }
-                    boolean activeCount = false;
-                    if(countSuccess == 0){
-                        activeCount = true;
-                    }
-
-//                    text = text + "======> Tong (D + T + Q) = " + formatNumber(tongDQT) + ", du tinh: " + formatNumber(tongWinDQT) + "\n"
-//                            + "======> Tong (D + K) = " + formatNumber(tongDK) + ", du tinh: " + formatNumber(tongWinDK) + "\n"
-//                            + "======> Tong (C + K + U) = " + formatNumber(tongUCK) + ", du tinh: " + formatNumber(tongWinUCK) + "\n"
-//                            + "======> Tong (C + T) = " + formatNumber(tongCT) + ", du tinh: " + formatNumber(tongWinCT) + "\n"
-//                            + "======> Tong  = " + formatNumber(tong) + "\n"
-//                            + "============Predict play: "+ playString + "\n";
-                    if (Objects.equals(playString, "D")) {
-                        playDC = "D";
-                        dcApi = new DCTK(0, DctkUtils.DCTK.D, DctkUtils.DCTK.coinLogicNew + coinPlay, 4);
-                        ResponseDctk responseDc = callApi(dcApi);
-                        dcBefore = dcApi;
-                        textDc = textDc + "===================Response DC: " + responseDc.getMessage()  + " ==> " + formatNumber(dcApi.getCoin()) + "\n";
-                        text = text + textDc + "\n";
-                    } else if (Objects.equals(playString, "C")) {
-                        playDC = "C";
-                        dcApi = new DCTK(0, DctkUtils.DCTK.C, DctkUtils.DCTK.coinLogicNew + coinPlay, 4);
-                        ResponseDctk responseDc = callApi(dcApi);
-                        dcBefore = dcApi;
-                        textDc = textDc + "===================Response DC: " + responseDc.getMessage()  + " ==> " + formatNumber(dcApi.getCoin()) + "\n";
-                        text = text + textDc + "\n";
-                    } else if (Objects.equals(playString, "T")) {
-                        playTK = "T";
-                        tkApi = new DCTK(0, DctkUtils.DCTK.T, DctkUtils.DCTK.coinLogicNew + coinPlay, 4);
-                        ResponseDctk responseTk = callApi(tkApi);
-                        ktBefore = tkApi;
-                        textTk = textTk + "===================Response TK: " + responseTk.getMessage() + " ==> " + formatNumber(tkApi.getCoin()) + "\n";
-                        text = text + textTk + "\n";
-                    } else if (Objects.equals(playString, "K")) {
-                        playTK = "K";
-                        tkApi = new DCTK(0, DctkUtils.DCTK.K, DctkUtils.DCTK.coinLogicNew + coinPlay, 4);
-                        ResponseDctk responseTk = callApi(tkApi);
-                        ktBefore = tkApi;
-                        textTk = textTk + "===================Response TK: " + responseTk.getMessage() + " ==> " + formatNumber(tkApi.getCoin()) + "\n";
-                        text = text + textTk + "\n";
-                    } else {
-                        Thread.sleep(30 * 1000);
-                        sendMail("Next continue");
-                        continue;
-                    }
-                    sendMail(text);
-                    System.out.println(text);
-                    text = "";
-                    Thread.sleep(30 * 1000);
-                    continue;
-                }
-
-                if(activeLogicNew){
-                    Integer idPrev =  getHistory().getHistories().get(0).getId();
-                    int countSuccess = 0;
-                    List<Balance> balances = getBalance().stream().
-                            filter(item -> item.getNote().indexOf(idPrev.toString()) != -1)
-                            .collect(Collectors.toList());
-                    if(!CollectionUtils.isEmpty(balances)){
-                        for (Balance balance : balances) {
-                            if(balance.getNote().indexOf("Tham gia phiên") != -1){
-                            }
-                            if(balance.getNote().indexOf("Trao thưởng phiên") != -1){
-                                countSuccess++;
-                                text = text + "Win van truoc: " + balance.toString() + "\n";
-                            }else{
-                            }
-                        }
-                        if (countSuccess ==0 ){
-                            text = text + "==============> Lose van truoc" + "\n";
-                        }
-                    }
-                    List<String> strSum = new ArrayList<>();
-                    Integer tongDQT = selectD + selectQ + selectT;
-                    Integer tongWinDQT = selectD * 2 + selectQ * 3 + selectT * 2;
-                    Integer tongUCK = selectU + selectC + selectK;
-                    Integer tongWinUCK = selectU * 3 + selectC * 2+ selectK * 2;
-                    Integer tongDK = selectD + selectK;
-                    Integer tongWinDK = selectD * 2 + selectK * 2;
-                    Integer tongCT = selectC + selectT ;
-                    Integer tongWinCT = selectC * 2 + selectT * 2;
-                    Integer tong = selectD + selectQ + selectT + selectU + selectK + selectC;
-
-//                    System.out.println("======> Tong (D + T + Q) = " + formatNumber(tongDQT) + ", du tinh: " + formatNumber(tongWinDQT));
-//                    System.out.println("======> Tong (D + K) = " + formatNumber(tongDK) + ", du tinh: " + formatNumber(tongWinDK));
-//                    System.out.println("======> Tong (C + K + U) = " + formatNumber(tongUCK) + ", du tinh: " + formatNumber(tongWinUCK));
-//                    System.out.println("======> Tong (C + T) = " + formatNumber(tongCT) + ", du tinh: " + formatNumber(tongWinCT));
-                    System.out.println("======> Tong C  = " + formatNumber(selectC) + ", Du tinh: " +  formatNumber(selectC * 2));
-                    System.out.println("======> Tong D  = " + formatNumber(selectD) + ", Du tinh: " +  formatNumber(selectD * 2));
-                    System.out.println("======> Tong K  = " + formatNumber(selectK) + ", Du tinh: " +  formatNumber(selectK * 2));
-                    System.out.println("======> Tong T  = " + formatNumber(selectT) + ", Du tinh: " +  formatNumber(selectT * 2));
-                    System.out.println("======> Tong  = " + formatNumber(tong) );
-
-                    List<Integer> listSum = new ArrayList<>(List.of(tongWinDK, tongWinCT, tongWinDQT, tongWinUCK));
-                    Collections.sort(listSum);
-                    List<Integer> listSumSort = new ArrayList<>(List.of(listSum.get(0), listSum.get(1)));
-                    int countsize = 0;
-                    if(selectD == 0){
-                        dcApi = new DCTK(0, DctkUtils.DCTK.D, 3000000, 4);
-                        ResponseDctk responseDc = callApi(dcApi);
-                        dcBefore = dcApi;
-                        textDc = textDc + "===================Response DC: " + responseDc.getMessage()  + " ==> " + formatNumber(dcApi.getCoin()) + "\n";
-                        text = text + "selecctD = 0, play D" + "\n";
-                        text = text + textDc + "\n";
-                    }
-                    if(selectC == 0){
-                        dcApi = new DCTK(0, DctkUtils.DCTK.C, 3000000, 4);
-                        ResponseDctk responseDc = callApi(dcApi);
-                        dcBefore = dcApi;
-                        textDc = textDc + "===================Response DC: " + responseDc.getMessage()  + " ==> " + formatNumber(dcApi.getCoin()) + "\n";
-                        text = text + "selecctC = 0, play C" + "\n";
-                        text = text + textDc + "\n";
-                    }
-                    if(selectT == 0){
-                        tkApi = new DCTK(0, DctkUtils.DCTK.T, 3000000, 4);
-                        ResponseDctk responseTk = callApi(tkApi);
-                        ktBefore = tkApi;
-                        textTk = textTk + "===================Response TK: " + responseTk.getMessage() + " ==> " + formatNumber(tkApi.getCoin()) + "\n";
-                        text = text + "selecctT = 0, play T" + "\n";
-                        text = text + textTk + "\n";
-                    }
-                    if(selectK == 0){
-                        tkApi = new DCTK(0, DctkUtils.DCTK.K, 3000000, 4);
-                        ResponseDctk responseTk = callApi(tkApi);
-                        ktBefore = tkApi;
-                        textTk = textTk + "===================Response TK: " + responseTk.getMessage() + " ==> " + formatNumber(tkApi.getCoin()) + "\n";
-                        text = text + "selecctK = 0, play K" + "\n";
-                        text = text + textTk + "\n";
-                    }
-                    if(tong > tongWinDQT && listSumSort.contains(tongWinDQT)){
-                        countsize++;
-                        strSum.addAll(DQT);
-                        System.out.println("Add tongWinDQT");
-                    }
-                    if(tong > tongWinUCK && listSumSort.contains(tongWinUCK)){
-                        countsize++;
-                        strSum.addAll(UCK);
-                        System.out.println("Add tongWinUCK");
-                    }
-                    if(tong > tongWinCT && listSumSort.contains(tongWinCT)){
-                        countsize++;
-                        System.out.println("Add tongWinCT");
-                        strSum.addAll(CT);
-                    }
-                    if(tong >tongWinDK && listSumSort.contains(tongWinDK)){
-                        countsize++;
-                        System.out.println("Add tongWinDK");
-                        strSum.addAll(DK);
-                    }
-                    String playString = findUniqueMostFrequentElement(strSum);
-                    if(countsize == 1 && StringUtils.isEmpty(playString)){
-                        playString = strSum.get(0);
-                    }
-                    System.out.println("============Predict play: "+ playString);
-                    text = text + "======> Tong (D + T + Q) = " + formatNumber(tongDQT) + ", du tinh: " + formatNumber(tongWinDQT) + "\n"
-                            + "======> Tong (D + K) = " + formatNumber(tongDK) + ", du tinh: " + formatNumber(tongWinDK) + "\n"
-                            + "======> Tong (C + K + U) = " + formatNumber(tongUCK) + ", du tinh: " + formatNumber(tongWinUCK) + "\n"
-                            + "======> Tong (C + T) = " + formatNumber(tongCT) + ", du tinh: " + formatNumber(tongWinCT) + "\n"
-                            + "======> Tong  = " + formatNumber(tong) + "\n"
-                            + "============Predict play: "+ playString + "\n";
-                    int coinPlay = getCoinLogic();
-                    if(countSuccess == 0){
-                        coinPlay = 100000;
-                    }
-                    if (Objects.equals(playString, "D")) {
-                        playDC = "D";
-                        dcApi = new DCTK(0, DctkUtils.DCTK.D, DctkUtils.DCTK.coinLogicNew + coinPlay, 4);
-                        ResponseDctk responseDc = callApi(dcApi);
-                        dcBefore = dcApi;
-                        textDc = textDc + "===================Response DC: " + responseDc.getMessage()  + " ==> " + formatNumber(dcApi.getCoin()) + "\n";
-                        text = text + textDc + "\n";
-                    } else if (Objects.equals(playString, "C")) {
-                        playDC = "C";
-                        dcApi = new DCTK(0, DctkUtils.DCTK.C, DctkUtils.DCTK.coinLogicNew + coinPlay, 4);
-                        ResponseDctk responseDc = callApi(dcApi);
-                        dcBefore = dcApi;
-                        textDc = textDc + "===================Response DC: " + responseDc.getMessage()  + " ==> " + formatNumber(dcApi.getCoin()) + "\n";
-                        text = text + textDc + "\n";
-                    } else if (Objects.equals(playString, "T")) {
-                        playTK = "T";
-                        tkApi = new DCTK(0, DctkUtils.DCTK.T, DctkUtils.DCTK.coinLogicNew + coinPlay, 4);
-                        ResponseDctk responseTk = callApi(tkApi);
-                        ktBefore = tkApi;
-                        textTk = textTk + "===================Response TK: " + responseTk.getMessage() + " ==> " + formatNumber(tkApi.getCoin()) + "\n";
-                        text = text + textTk + "\n";
-                    } else if (Objects.equals(playString, "K")) {
-                        playTK = "K";
-                        tkApi = new DCTK(0, DctkUtils.DCTK.K, DctkUtils.DCTK.coinLogicNew + coinPlay, 4);
-                        ResponseDctk responseTk = callApi(tkApi);
-                        ktBefore = tkApi;
-                        textTk = textTk + "===================Response TK: " + responseTk.getMessage() + " ==> " + formatNumber(tkApi.getCoin()) + "\n";
-                        text = text + textTk + "\n";
-                    } else {
-                        Thread.sleep(30 * 1000);
-                        sendMail("Next continue");
-                        continue;
-                    }
-                    sendMail(text);
-                    System.out.println(text);
-                    text = "";
-                    Thread.sleep(30 * 1000);
-                    continue;
-                }
-
-
-
-                //dc
-                System.out.println("===========isChangeProcessBigger: " + isChangeProcessBigger);
-                Integer compareMoneyChangeDC = (selectC -selectD) > 0 ? selectC - selectD : selectD -selectC;
-                Integer compareMoneyChangeTK = (selectK -selectT) > 0 ? selectK - selectT : selectT -selectK;
-                if(selectD> selectC){
-                    if(isChangeProcessBigger){
-                        playDC = "D";
-                        textDc = textDc + "Bigger => D > C chenh lech: " + formatNumber(compareMoneyChangeDC) + "===> predict: D\n";
-                        dcApi = new DCTK(0, DctkUtils.DCTK.D, DctkUtils.DCTK.coin, 4);
-                    }else{
-                        playDC = "C";
-                        textDc = textDc + "Smaller => D > C chenh lech: " + formatNumber(compareMoneyChangeDC) + "===> predict: C\n";
-                        dcApi = new DCTK(0, DctkUtils.DCTK.C, DctkUtils.DCTK.coin, 4);
-                    }
-                }else if(selectD  < selectC ){
-                    if(isChangeProcessBigger){
-                        playDC = "C";
-                        textDc = textDc + "Bigger => C > D chenh lech: " + formatNumber(compareMoneyChangeDC) + "===> predict: C\n";
-                        dcApi = new DCTK(0, DctkUtils.DCTK.C, DctkUtils.DCTK.coin, 4);
-                    }else{
-                        playDC = "D";
-                        textDc = textDc + "Smaller => C > D chenh lech: " + formatNumber(compareMoneyChangeDC) + "===> predict: D\n";
-                        dcApi = new DCTK(0, DctkUtils.DCTK.D, DctkUtils.DCTK.coin, 4);
-                    }
-                }else{
-                    continue;
-                }
-                //tk
-                if(selectT > selectK ){
-                    if(isChangeProcessBigger){
-                        playTK = "T";
-                        textDc = textDc + "Bigger => T > K chenh lech: " + formatNumber(compareMoneyChangeTK) + "===> predict: T\n";
-                        tkApi = new DCTK(0, DctkUtils.DCTK.T, DctkUtils.DCTK.coin, 4);
-                    }else{
-                        playTK = "K";
-                        textDc = textDc + "Smaller => T > K chenh lech: " + formatNumber(compareMoneyChangeTK) + "===> predict: K\n";
-                        tkApi = new DCTK(0, DctkUtils.DCTK.K, DctkUtils.DCTK.coin, 4);
-                    }
-                }else if(selectT < selectK){
-                    if(isChangeProcessBigger){
-                        playTK = "K";
-                        textDc = textDc + "Bigger => K > T chenh lech: " + formatNumber(compareMoneyChangeTK) + "===> predict: K\n";
-                        tkApi = new DCTK(0, DctkUtils.DCTK.K, DctkUtils.DCTK.coin , 4);
-                    }else{
-                        playTK = "T";
-                        textDc = textDc + "Smaller => K > T chenh lech: " + formatNumber(compareMoneyChangeTK) + "===> predict: T\n";
-                        tkApi = new DCTK(0, DctkUtils.DCTK.T, DctkUtils.DCTK.coin , 4);
-                    }
-                }else{
-                    continue;
-                }
-                text = "";
-                moneyChangeDC = selectC -selectD;
-                moneyChangeTK = selectK -selectT;
-
-                Integer rangeDC = 3;
-                Integer rangeTk = 3;
-                if(compareMoneyChangeDC > compareMoneyChangeTK){
-                    rangeDC = 1;
-                }
-                if(compareMoneyChangeTK > compareMoneyChangeDC){
-                    rangeTk = 1;
-                }
-                Integer coinPlayDc = compareMoneyChangeDC < DctkUtils.DCTK.rangePlay ? 200000 : (Integer) ((compareMoneyChangeDC * 20) / 1000);
-                Integer coinPlayTk = compareMoneyChangeTK < DctkUtils.DCTK.rangePlay ? 200000 : (Integer)((compareMoneyChangeTK * 20) / 1000);
-
-                coinPlayDc = coinPlayDc * rangeDC;
-                coinPlayTk = coinPlayTk * rangeTk;
-                if(compareMoneyChangeDC > 100000000){
-                    if(!isChangeProcessBigger){
-                        coinPlayDc = 3000000;
-                    }else{
-                        coinPlayDc = 1000000;
-                    }
-                }
-                if(compareMoneyChangeTK > 100000000){
-                    if(!isChangeProcessBigger){
-                        coinPlayTk = 3000000;
-                    }else{
-                        coinPlayTk = 1000000;
-                    }
-                }
-                if(countIsChangeProcessBigger > 2){
-                    coinPlayTk = 200000;
-                    coinPlayDc = 200000;
-                    countIsChangeProcessBigger = 0;
-                }
-
-                if(compareMoneyChangeDC > compareMoneyChangeTK){
-                    dcApi.setCoin(coinPlayDc);
-                    ResponseDctk responseDc = callApi(dcApi);
-                    dcBefore = dcApi;
-                    textDc = textDc + "===================Response DC: " + responseDc.getMessage() + " ==> " + formatNumber(dcApi.getCoin()) + ", coin after: " + formatNumber(coinPlayDc/rangeDC) + "\n";
-                    text = text + textDc +"\n";
-                }
-                if(compareMoneyChangeTK > compareMoneyChangeDC){
-                    tkApi.setCoin(coinPlayTk);
-                    ResponseDctk responseTk = callApi(tkApi);
-                    ktBefore = tkApi;
-                    textTk = textTk + "===================Response TK: " + responseTk.getMessage() + " ==> " + formatNumber(tkApi.getCoin()) + ", coin after: " + formatNumber(coinPlayTk/rangeTk) + "\n";
-                    text = text + textTk +"\n";
-                }
-                System.out.println(textDc);
-                System.out.println(textTk);
-                Thread.sleep(50 * 1000);
-                if(isFirstRun){
-                    isFirstRun = false;
-                }
-            }
-        }catch (Exception e){
-            System.out.println(""+e.getMessage());
-        }
-
-    }
     public String getTimeHistory(String dateTimeString){
         // Define the formatter for the input string
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
@@ -1041,6 +496,9 @@ public class DctkService {
         String timeString = String.format("%02d:%02d:%02d", hour, minute, second);
         return timeString;
     }
+    public static String playStringDc = "";
+    public static String playStringTk = "";
+    public static Boolean isPlayPrevious = false;
     public void playVersion3() throws InterruptedException {
         try{
             while (isRun){
@@ -1058,8 +516,7 @@ public class DctkService {
                 System.out.println("=============Time current: " + timeString);
                 Long timeCurrent = Long.valueOf(timeSocket.getTime()) * 1000;
                 Long timeEnd = System.currentTimeMillis() + timeCurrent ;
-//                String timeCheck = getTimeCheck(timeEnd - (90 * 1000 +30 * 1000));
-                timeEnd = timeEnd - (23 * 1000);
+                timeEnd = timeEnd - (25 * 1000);
                 connectSocket();
                 while(System.currentTimeMillis() < timeEnd){
                     Thread.sleep(1000);
@@ -1105,16 +562,17 @@ public class DctkService {
                             filter(item -> item.getNote().indexOf(idPrev.toString()) != -1)
                             .collect(Collectors.toList());
                     if(!CollectionUtils.isEmpty(balances)){
+                        isPlayPrevious = true;
                         for (Balance balance : balances) {
                             if(balance.getNote().indexOf("Tham gia phiên") != -1){
+                                text = text + balance.toString() + "\n";
                             }
                             if(balance.getNote().indexOf("Trao thưởng phiên") != -1){
                                 countSuccess++;
-                                text = text + balance.toString() + "\n";
                                 if(balance.getAfter() > DctkUtils.DCTK.coinDrawl){
                                     Drawl drawl = new Drawl();
                                     drawl.setCharacter("tiktokab");
-                                    drawl.setCoin(20000000);
+                                    drawl.setCoin(DctkUtils.DCTK.coinDrawl1);
                                     drawl.setPassword("admadm");
                                     drawl.setAccount("avatarlands");
                                     drawl.setIdServer("4");
@@ -1126,58 +584,23 @@ public class DctkService {
                         if (countSuccess ==0 ){
                             text = text + "==============> Lose van truoc" + "\n";
                         }
+                    }else{
+                        isPlayPrevious = false;
                     }
-                    List<String> strSum = new ArrayList<>();
-                    Integer tongDQT = selectD + selectQ + selectT;
-//                    Integer tongWinDQT = selectD * 2 + selectQ * 3 + selectT * 2;
-                    Integer tongWinDQT = selectD * 2+ selectT * 2;
-                    Integer tongUCK = selectU + selectC + selectK;
-                    Integer tongWinUCK =  selectC * 2+ selectK * 2;
-//                    Integer tongWinUCK = selectU * 3 + selectC * 2+ selectK * 2;
-                    Integer tongDK = selectD + selectK;
-                    Integer tongWinDK = selectD * 2 + selectK * 2;
-                    Integer tongCT = selectC + selectT ;
-                    Integer tongWinCT = selectC * 2 + selectT * 2;
+                    User user = getUser();
                     Integer tong = selectD + selectQ + selectT + selectU + selectK + selectC;
-
-//                    System.out.println("======> Tong (D + T + Q) = " + formatNumber(tongDQT) + ", du tinh: " + formatNumber(tongWinDQT));
-//                    System.out.println("======> Tong (D + K) = " + formatNumber(tongDK) + ", du tinh: " + formatNumber(tongWinDK));
-//                    System.out.println("======> Tong (C + K + U) = " + formatNumber(tongUCK) + ", du tinh: " + formatNumber(tongWinUCK));
-//                    System.out.println("======> Tong (C + T) = " + formatNumber(tongCT) + ", du tinh: " + formatNumber(tongWinCT));
-//                    System.out.println("======> Tong C  = " + formatNumber(selectC) + ", Du tinh: " +  formatNumber(selectC * 2));
-//                    System.out.println("======> Tong D  = " + formatNumber(selectD) + ", Du tinh: " +  formatNumber(selectD * 2));
-//                    System.out.println("======> Tong K  = " + formatNumber(selectK) + ", Du tinh: " +  formatNumber(selectK * 2));
-//                    System.out.println("======> Tong T  = " + formatNumber(selectT) + ", Du tinh: " +  formatNumber(selectT * 2));
-//                    System.out.println("======> Tong  = " + formatNumber(tong) );
                     text = text + "======> Tong C  = " + formatNumber(selectC) + ", Du tinh: " +  formatNumber(selectC * 2) + "\n"
                             + "======> Tong D  = " + formatNumber(selectD) + ", Du tinh: " +  formatNumber(selectD * 2) + "\n"
                             + "======> Tong K  = " + formatNumber(selectK) + ", Du tinh: " +  formatNumber(selectK * 2) + "\n"
                             + "======> Tong T  = " + formatNumber(selectT) + ", Du tinh: " +  formatNumber(selectT * 2) + "\n"
-                            + "======> Tong (D + T + Q) = " + formatNumber(tongDQT) + ", du tinh: " + formatNumber(tongWinDQT)+ "\n"
-                            +"======> Tong (D + K) = " + formatNumber(tongDK) + ", du tinh: " + formatNumber(tongWinDK)+ "\n"
-                            +"======> Tong (C + K + U) = " + formatNumber(tongUCK) + ", du tinh: " + formatNumber(tongWinUCK)+ "\n"
-                            +"======> Tong (C + T) = " + formatNumber(tongCT) + ", du tinh: " + formatNumber(tongWinCT)+ "\n"
                             + "======> Tong  = " + formatNumber(tong) + "\n";
-                    int coinPlay = getCoinLogic();
+                    int coinPlay = getCoinLogic1(DctkUtils.DCTK.range1,DctkUtils.DCTK.range2 );
                     if(countSuccess != 0){
                         coinPlay = coinPlay + 400000;
                     }
                     String playString = "";
-                    Map<Integer, String> mapSum = new HashMap<>();
-                    mapSum.put(tongWinDQT, "DTQ");
-                    mapSum.put(tongWinDK, "DK" );
-                    mapSum.put(tongWinCT, "CT");
-                    mapSum.put(tongWinUCK, "UCK");
-                    List<Integer> listSum = new ArrayList<>(List.of(tongWinCT, tongWinDK, tongWinDQT, tongWinUCK));
-                    Collections.sort(listSum);
-                    Integer sum1 = listSum.get(0);
-                    Integer sum2 = listSum.get(1);
-                    Integer sum3 = listSum.get(2);
-                    Integer sum4 = listSum.get(3);
-                    String sumString1 = mapSum.get(sum1);
-                    String sumString2 = mapSum.get(sum2);
-                    String sumString3 = mapSum.get(sum3);
-                    String sumString4 = mapSum.get(sum4);
+                    String playStringDc = "";
+                    String playStringTk = "";
                     if(selectD > selectC){
                         if (selectC != 0){
                             int check = selectD / selectC;
@@ -1206,36 +629,7 @@ public class DctkService {
                             text = text + "=>>> select D = 0, chon: D "+ "\n";
                         }
                     }
-
-//                    if(Objects.equals(sumString1, "DK") && Objects.equals(sumString2, "DTQ")){
-//                        playString = "D";
-//                    } else if (Objects.equals(sumString1, "DTQ") && Objects.equals(sumString2, "DK")){
-//                        playString = "D";
-//                    }else if (Objects.equals(sumString1, "CT") && Objects.equals(sumString2, "UCK")){
-//                        playString = "C";
-//                    }else if (Objects.equals(sumString1, "UCK") && Objects.equals(sumString2, "CT")){
-//                        playString = "C";
-//                    } else if(Objects.equals(sumString1, "DK") && Objects.equals(sumString2, "UCK")){
-//                        playString = "K";
-//                    } else if (Objects.equals(sumString1, "UCK") && Objects.equals(sumString2, "DK")){
-//                        playString = "K";
-//                    }else if (Objects.equals(sumString1, "CT") && Objects.equals(sumString2, "DTQ")){
-//                        playString = "T";
-//                    }else if (Objects.equals(sumString1, "DTQ") && Objects.equals(sumString2, "CT")){
-//                        playString = "T";
-//                    }else if (Objects.equals(sumString1, "DK") && Objects.equals(sumString2, "CT")){
-//                        if((Objects.equals(sumString1, "DK") && Objects.equals(sumString3, "DTQ"))){
-//                            playString = "D";
-//                        }else{
-//                            playString = "K";
-//                        }
-//                    }else if (Objects.equals(sumString1, "CT") && Objects.equals(sumString2, "DK")){
-//                        if((Objects.equals(sumString1, "CT") && Objects.equals(sumString3, "DTQ"))){
-//                            playString = "T";
-//                        }else{
-//                            playString = "C";
-//                        }
-//                    }
+                    playStringDc = playString;
                     if (Objects.equals(playString, "D")) {
                         playDC = "D";
                         dcApi = new DCTK(0, DctkUtils.DCTK.D, DctkUtils.DCTK.coinLogicNew + coinPlay, 4);
@@ -1278,6 +672,7 @@ public class DctkService {
                             text = text + "=>>> select T = 0, chon: T "+ "\n";
                         }
                     }
+                    playStringTk = playString;
                      if (Objects.equals(playString, "T")) {
                         playTK = "T";
                         tkApi = new DCTK(0, DctkUtils.DCTK.T, DctkUtils.DCTK.coinLogicNew + coinPlay, 4);
@@ -1291,14 +686,47 @@ public class DctkService {
                         ktBefore = tkApi;
                         textTk = textTk + "===================Response TK: " + responseTk.getMessage() + " ==> " + formatNumber(tkApi.getCoin()) + "\n";
                     }
-                    text = text + textDc + "\n";
-                    text = text + textTk + "\n";
-                    sendMail(text);
-                    System.out.println(text);
-                    text = "";
+                    text = text + textDc;
+                    text = text + textTk;
+                    user = getUser();
+                    if(user != null){
+                        text = text + "SO DU SAU KHI THAM GIA VAN #"+ history1.getId() +": " + formatNumber(user.getBalances().get(0).getBalance()) + "\n";
+                    }
                     listMapPlayer.clear();
                     listMapPlayer = new HashMap<>();
                     Thread.sleep(50 * 1000);
+                    History history2 = getHistory().getHistories().get(0);
+                    String resultDc = history2.getResult_cd() == DctkUtils.DCTK.C ? "C" : "D";
+                    String resultTk = history2.getResult_tk() == DctkUtils.DCTK.T ? "T" : "K";
+                    text = text + "*********************KET QUA VAN NAY**************************" + "\n";
+                    if(!StringUtils.isEmpty(playStringDc)){
+                        if(playStringDc.equals("C") && resultDc.equals("C")){
+                            text =text + "Chuc mung ban da thang C \n";
+                        }else if(playStringDc.equals("D") && resultDc.equals("D")){
+                            text =text + "Chuc mung ban da thang D \n";
+                        } else {
+                            text =text + "Ban da thua: \n" + playStringDc;
+                        }
+                    }else{
+                        text = text + "Khong tham gia DC \n" ;
+                    }
+                    if(!StringUtils.isEmpty(playStringDc)){
+                        if(playStringTk.equals("T") && resultTk.equals("T")){
+                            text =text + "Chuc mung ban da thang T \n";
+                        }else if(playStringTk.equals("K") && resultTk.equals("K")){
+                            text =text + "Chuc mung ban da thang K \n";
+                        } else {
+                            text =text + "Ban da thua: \n" + playStringDc;
+                        }
+                    }else{
+                        text = text + "Khong tham gia TK \n" ;
+                    }
+                    if(user != null){
+                        text = text + "SO DU HIEN TAI: " + formatNumber(user.getBalances().get(0).getBalance()) + "\n";
+                    }
+                    sendMail(text);
+                    System.out.println(text);
+                    text = "";
                 }
             }
         }catch (Exception e){
@@ -1306,129 +734,25 @@ public class DctkService {
         }
 
     }
-    public void playVersion4() throws InterruptedException {
+
+    public static String urlUserApi = "https://api.dctk.me/api/user";
+    public User getUser(){
+        HttpHeaders httpHeaders = new HttpHeaders();
+        ResponseEntity<User> response = null;
+        HttpEntity<String> requestEntity = null;
         try{
-            while (isRun){
-                String textDc = "";
-                String textTk = "";
-                DCTK dcApi = null;
-                DCTK tkApi = null;
-                if(activeLogicNew1){
-                    List<History> histories =getHistory().getHistories();
-                    Integer idPrev =  histories.get(0).getId();
-                    int countSuccess = 0;
-                    List<Balance> balances = getBalance().stream().
-                            filter(item -> item.getNote().indexOf(idPrev.toString()) != -1)
-                            .collect(Collectors.toList());
-                    if(!CollectionUtils.isEmpty(balances)){
-                        for (Balance balance : balances) {
-                            if(balance.getNote().indexOf("Tham gia phiên") != -1){
-                            }
-                            if(balance.getNote().indexOf("Trao thưởng phiên") != -1){
-                                countSuccess++;
-                                text = text + balance.toString() + "\n";
-                                if(balance.getAfter() > DctkUtils.DCTK.coinDrawl){
-                                    Drawl drawl = new Drawl();
-                                    drawl.setCharacter("tiktokab");
-                                    drawl.setCoin(20000000);
-                                    drawl.setPassword("admadm");
-                                    drawl.setAccount("avatarlands");
-                                    drawl.setIdServer("4");
-                                    callDrawalApi(drawl);
-                                }
-                            }else{
-                            }
-                        }
-                        if (countSuccess ==0 ){
-                            text = text + "==============> Lose van truoc" + "\n";
-                        }
-                    }
-                    History history0 = histories.get(0);
-                    History history1 = histories.get(1);
-                    History history2 = histories.get(2);
-                    History history3 = histories.get(3);
-                    int coinPlay = getCoinLogic();
-                    String playString = "";
-                    if(history0.getResult_cd() == DctkUtils.DCTK.C && history1.getResult_cd() == DctkUtils.DCTK.D){
-                        playString = "D";
-                    }else if(history0.getResult_cd() == DctkUtils.DCTK.D && history1.getResult_cd() == DctkUtils.DCTK.C){
-                        playString = "C";
-                    }else if(history0.getResult_cd() == DctkUtils.DCTK.D && history1.getResult_cd() == DctkUtils.DCTK.D && history2.getResult_cd() != DctkUtils.DCTK.D){
-                        playString = "C";
-                    }else if(history0.getResult_cd() == DctkUtils.DCTK.C && history1.getResult_cd() == DctkUtils.DCTK.C && history2.getResult_cd() != DctkUtils.DCTK.C){
-                        playString = "D";
-                    }else if(history0.getResult_cd() == DctkUtils.DCTK.D){
-                        playString = "D";
-                    }else if(history0.getResult_cd() == DctkUtils.DCTK.C){
-                        playString = "C";
-                    }
-                    boolean isPlayDC = false;
-                    boolean isPlayTK = false;
-                    if (Objects.equals(playString, "D")) {
-                        playDC = "D";
-                        dcApi = new DCTK(0, DctkUtils.DCTK.D, DctkUtils.DCTK.coinLogicNew + coinPlay, 4);
-                        ResponseDctk responseDc = callApi(dcApi);
-                        dcBefore = dcApi;
-                        textDc = textDc + "===================Response DC: " + responseDc.getMessage()  + " ==> " + formatNumber(dcApi.getCoin()) + "\n";
-                        if(responseDc.getMessage().indexOf("Tham gia thành công") != -1){
-                            isPlayDC = true;
-                        }
-                    } else {
-                        playDC = "C";
-                        dcApi = new DCTK(0, DctkUtils.DCTK.C, DctkUtils.DCTK.coinLogicNew + coinPlay, 4);
-                        ResponseDctk responseDc = callApi(dcApi);
-                        dcBefore = dcApi;
-                        textDc = textDc + "===================Response DC: " + responseDc.getMessage()  + " ==> " + formatNumber(dcApi.getCoin()) + "\n";
-                        if(responseDc.getMessage().indexOf("Tham gia thành công") != -1){
-                            isPlayDC = true;
-                        }
-                    }
-                    text = text + textDc + "\n";
-                    coinPlay = getCoinLogic();
-                    if(history0.getResult_tk() == DctkUtils.DCTK.T && history1.getResult_tk() == DctkUtils.DCTK.K){
-                        playString = "K";
-                    }else if(history0.getResult_tk() == DctkUtils.DCTK.K && history1.getResult_tk() == DctkUtils.DCTK.T){
-                        playString = "T";
-                    }else if(history0.getResult_tk() == DctkUtils.DCTK.K && history1.getResult_tk() == DctkUtils.DCTK.K && history2.getResult_tk() != DctkUtils.DCTK.K){
-                        playString = "T";
-                    }else if(history0.getResult_tk() == DctkUtils.DCTK.T && history1.getResult_tk() == DctkUtils.DCTK.T && history2.getResult_tk() != DctkUtils.DCTK.T){
-                        playString = "K";
-                    }else if(history0.getResult_tk() == DctkUtils.DCTK.T){
-                        playString = "T";
-                    }else if(history0.getResult_tk() == DctkUtils.DCTK.K){
-                        playString = "K";
-                    }
-                    if (Objects.equals(playString, "T")) {
-                        playTK = "T";
-                        tkApi = new DCTK(0, DctkUtils.DCTK.T, DctkUtils.DCTK.coinLogicNew + coinPlay, 4);
-                        ResponseDctk responseTk = callApi(tkApi);
-                        ktBefore = tkApi;
-                        textTk = textTk + "===================Response TK: " + responseTk.getMessage() + " ==> " + formatNumber(tkApi.getCoin()) + "\n";
-                        if(responseTk.getMessage().indexOf("Tham gia thành công") != -1){
-                            isPlayTK = true;
-                        }
-                    } else {
-                        playTK = "K";
-                        tkApi = new DCTK(0, DctkUtils.DCTK.K, DctkUtils.DCTK.coinLogicNew + coinPlay, 4);
-                        ResponseDctk responseTk = callApi(tkApi);
-                        ktBefore = tkApi;
-                        textTk = textTk + "===================Response TK: " + responseTk.getMessage() + " ==> " + formatNumber(tkApi.getCoin()) + "\n";
-                        if(responseTk.getMessage().indexOf("Tham gia thành công") != -1){
-                            isPlayTK = true;
-                        }
-                    }
-                    text = text + textTk + "\n";
-                    if(isPlayDC && isPlayTK){
-                        sendMail(text);
-                    }
-                    System.out.println(text);
-                    text = "";
-                    Thread.sleep(50 * 1000);
-                }
-            }
+            httpHeaders.set("Authorization", "Bearer " + token);
+            httpHeaders.set("Content-Type", "application/json");
+            requestEntity = new HttpEntity<>(httpHeaders);
+            response = restTemplate.exchange(urlUserApi, HttpMethod.GET, requestEntity, User.class);
         }catch (Exception e){
-            System.out.println(""+e.getMessage());
+            token = getToken();
+            httpHeaders.set("Authorization", "Bearer " + token);
+            httpHeaders.set("Content-Type", "application/json");
+            requestEntity = new HttpEntity<>(httpHeaders);
+            response = restTemplate.exchange(urlUserApi, HttpMethod.GET, requestEntity, User.class);
         }
+        return response.getBody();
     }
     public String getTimeCheck(long currentTimeMillis){
 
@@ -1635,20 +959,20 @@ public class DctkService {
         Random random = new Random();
 
         // Xác định khoảng giá trị
-        int lowerBound = 1600000;
-        int upperBound = 3000000;
+        int lowerBound = 3000000;
+        int upperBound = 3200000;
 
-        // Tạo số ngẫu nhiên trong khoảng từ 900000 đến 1200000
         int randomNumber = lowerBound + random.nextInt(upperBound - lowerBound + 1);
         return randomNumber;
     }
-    public int genCoin(int coin, int coinCheck){
-        int result;
-        int coinRandom;
-        do{
-            coinRandom = getCoinLogic();
-            result = coin + coinRandom;
-        }while (result > coinCheck);
-        return coinRandom;
+    public static int getCoinLogic1(int min, int max) {
+        Random rand = new Random();
+        int randomNumber;
+
+        do {
+            randomNumber = rand.nextInt((max - min) / 100000 + 1) * 100000 + min;
+        } while (randomNumber % 100000 != 0);
+
+        return randomNumber;
     }
 }
