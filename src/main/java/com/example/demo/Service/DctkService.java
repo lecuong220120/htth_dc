@@ -580,7 +580,6 @@ public class DctkService {
                         isPlayPrevious = true;
                         for (Balance balance : balances) {
                             if(balance.getNote().indexOf("Tham gia phiên") != -1){
-                                text = text + balance.toString() + "\n";
                             }
                             if(balance.getNote().indexOf("Trao thưởng phiên") != -1){
                                 countSuccess++;
@@ -597,20 +596,13 @@ public class DctkService {
                             }
                         }
                         if (countSuccess ==0 ){
-                            text = text + "==============> Lose van truoc" + "\n";
                         }
                     }else{
                         isPlayPrevious = false;
                     }
-                    User user = getUser();
                     Integer tong = selectD + selectQ + selectT + selectU + selectK + selectC;
-                    text = text + "======> Tong C  = " + formatNumber(selectC) + ", Du tinh: " +  formatNumber(selectC * 2) + "\n"
-                            + "======> Tong D  = " + formatNumber(selectD) + ", Du tinh: " +  formatNumber(selectD * 2) + "\n"
-                            + "======> Tong K  = " + formatNumber(selectK) + ", Du tinh: " +  formatNumber(selectK * 2) + "\n"
-                            + "======> Tong T  = " + formatNumber(selectT) + ", Du tinh: " +  formatNumber(selectT * 2) + "\n"
-                            + "======> Tong  = " + formatNumber(tong) + "\n";
 //                    int coinPlay = getCoinLogic1(DctkUtils.DCTK.range1,DctkUtils.DCTK.range2 );
-                    int coinPlay = 3000000;
+                    int coinPlay = 2000000;
                     if(countSuccess != 0){
                         coinPlay = coinPlay + 500000;
                     }
@@ -650,13 +642,27 @@ public class DctkService {
                     stringMapTk.put( "K", countK);
                     stringMapTk.put( "T", countT);
                     if(stringMapDc.get("D") > stringMapDc.get("C") + 1 ){
+                        text = text + "So luong item C: " + countC++ + "\n";
+                        text = text + "So luong item D: " + countD + "\n";
                         playString = "C";
+                        selectC = selectC + coinPlay;
                     }else if(stringMapDc.get("C") > stringMapDc.get("D") + 1){
+                        text = text + "So luong item D: " + countD++ + "\n";
+                        text = text + "So luong item C: " + countC + "\n";
                         playString = "D";
+                        selectD = selectC + coinPlay;
                     }else{
                         if(selectD > selectC + coinPlay){
+                            text = text + "So luong item C: " + countC++ +"\n";
+                            text = text + "So luong item D: " + countD +"\n";
+                            selectC = selectC + coinPlay;
+                            text = text + "Tham gia case 'selectD > selectC + coinPlay' => C" + "\n";
                             playString = "C";
                         }else{
+                            text = text + "So luong item D: " + countD++ +"\n";
+                            text = text + "So luong item C: " + countC +"\n";
+                            text = text + "Tham gia case 'selectD < selectC + coinPlay' => D" + "\n";
+                            selectD = selectC + coinPlay;
                             playString = "D";
                         }
                     }
@@ -703,14 +709,29 @@ public class DctkService {
 //                            text = text + "=>>> select T = 0, chon: T "+ "\n";
 //                        }
 //                    }
+                    playString = "";
                     if(stringMapTk.get("T") > stringMapTk.get("K") + 1){
+                        text = text + "So luong item K: " + countK++ +"\n";
+                        text = text + "So luong item T: " + countT +"\n";
+                        selectK = selectK +coinPlay;
                         playString = "K";
                     }else if(stringMapTk.get("K") > stringMapTk.get("T") + 1){
+                        text = text + "So luong item T: " + countT++ +"\n";
+                        text = text + "So luong item K: " + countK +"\n";
+                        selectT = selectT +coinPlay;
                         playString = "T";
                     }else{
                         if(selectT > selectK + coinPlay){
+                            text = text + "So luong item K: " + countK++ +"\n";
+                            text = text + "So luong item T: " + countT +"\n";
+                            text = text + "Tham gia case 'selectT > selectK + coinPlay' => K" + "\n";
+                            selectK = selectK + coinPlay;
                             playString = "K";
                         }else{
+                            text = text + "So luong item K: " + countT++ +"\n";
+                            text = text + "So luong item T: " + countK +"\n";
+                            text = text + "Tham gia case 'selectT < selectK + coinPlay' => T" + "\n";
+                            selectT = selectT + coinPlay;
                             playString = "T";
                         }
                     }
@@ -730,13 +751,9 @@ public class DctkService {
                     }
                     text = text + textDc;
                     text = text + textTk;
-                    user = getUser();
-                    if(user != null){
-                        text = text + "SO DU SAU KHI THAM GIA VAN #"+ history1.getId() +": " + formatNumber(user.getBalances().get(0).getBalance()) + "\n";
-                    }
                     listMapPlayer.clear();
                     listMapPlayer = new HashMap<>();
-                    Thread.sleep(50 * 1000);
+                    Thread.sleep(40 * 1000);
                     History history2 = getHistory().getHistories().get(0);
                     String resultDc = history2.getResult_cd() == DctkUtils.DCTK.C ? "C" : "D";
                     String resultTk = history2.getResult_tk() == DctkUtils.DCTK.T ? "T" : "K";
@@ -747,25 +764,28 @@ public class DctkService {
                         }else if(playStringDc.equals("D") && resultDc.equals("D")){
                             text =text + "Chuc mung ban da thang D \n";
                         } else {
-                            text =text + "Ban da thua: \n" + playStringDc;
+                            text =text + "Ban da thua: " + playStringDc + "\n";
                         }
                     }else{
                         text = text + "Khong tham gia DC \n" ;
                     }
-                    if(!StringUtils.isEmpty(playStringDc)){
+                    if(!StringUtils.isEmpty(playStringTk)){
                         if(playStringTk.equals("T") && resultTk.equals("T")){
                             text =text + "Chuc mung ban da thang T \n";
                         }else if(playStringTk.equals("K") && resultTk.equals("K")){
                             text =text + "Chuc mung ban da thang K \n";
                         } else {
-                            text =text + "Ban da thua: \n" + playStringDc;
+                            text =text + "Ban da thua:" + playStringTk  +"\n";
                         }
                     }else{
                         text = text + "Khong tham gia TK \n" ;
                     }
-                    if(user != null){
-                        text = text + "SO DU HIEN TAI: " + formatNumber(user.getBalances().get(0).getBalance()) + "\n";
-                    }
+                    User user = getUser();
+                    text = text + "SO DU HIEN TAI: " + formatNumber(user.getBalances().get(0).getBalance()) + "\n";
+
+                    text = text + "======> Chenh lech  = " + (selectC > selectD ? "C lon hon D: " : "D lon hon C: ") + formatNumber(Math.abs(selectC-selectD))+ "\n"
+                            + "======> Chenh lech  = " + (selectT > selectK ? "T lon hon K: " : "K lon hon T: ") + formatNumber(Math.abs(selectT-selectK))+ "\n"
+                            + "======> Tong  = " + formatNumber(tong) + "\n";
                     sendMail(text);
                     System.out.println(text);
                     text = "";
