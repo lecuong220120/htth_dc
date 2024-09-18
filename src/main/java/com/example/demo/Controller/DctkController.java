@@ -3,6 +3,7 @@ package com.example.demo.Controller;
 import com.example.demo.DTO.HistoryDTO;
 import com.example.demo.Obj.History;
 import com.example.demo.Service.DctkService;
+import com.example.demo.Service.NsoService;
 import com.example.demo.websocket.WebSocketScraper;
 import org.java_websocket.client.WebSocketClient;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,12 +21,14 @@ import java.util.stream.Collectors;
 public class DctkController {
     @Autowired
     private DctkService dctkService;
+    @Autowired
+    private NsoService nsoService;
     @GetMapping("/run")
     public String sendEmail() {
         ExecutorService executorService = Executors.newFixedThreadPool(1);
         executorService.submit(() -> {
             try {
-                System.out.println("Start");
+                System.out.println("Start DCTK");
                 dctkService.playVersion3();
             } catch (Exception e) {
                 Thread.currentThread().interrupt();
@@ -38,8 +41,8 @@ public class DctkController {
         ExecutorService executorService = Executors.newFixedThreadPool(1);
         executorService.submit(() -> {
             try {
-                System.out.println("Start");
-                dctkService.playVersion3();
+                System.out.println("Start NSO");
+                nsoService.playVersion4NSO();
             } catch (Exception e) {
                 Thread.currentThread().interrupt();
             }

@@ -3,6 +3,7 @@ package com.example.demo.websocket;
 import com.example.demo.Obj.History;
 import com.example.demo.Obj.TimeSocket;
 import com.example.demo.Service.DctkService;
+import com.example.demo.Service.NsoService;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.java_websocket.client.WebSocketClient;
@@ -40,6 +41,7 @@ public class WebSocketThreadNso extends WebSocketClient {
             user.setServer(jsonObject.getInt("server"));
             user.setTime(jsonObject.getInt("time"));
             DctkService.timeSocket = user;
+            NsoService.timeSocket = user;
         }
     }
 
