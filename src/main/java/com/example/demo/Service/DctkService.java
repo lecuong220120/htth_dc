@@ -499,6 +499,7 @@ public class DctkService {
     public static String playStringDc = "";
     public static String playStringTk = "";
     public static Boolean isPlayPrevious = false;
+    List<String> listUserNameNot = new ArrayList<>(List.of("nguyenkhue"));
     public void playVersion3() throws InterruptedException {
         try{
             while (isRun){
@@ -546,9 +547,10 @@ public class DctkService {
                 int countQ = 0;
                 int countU = 0;
                 System.out.println("====================Player size(): " + players.size());
-                Map<String, Integer> stringMapDc = new HashMap<>();
-                Map<String, Integer> stringMapTk = new HashMap<>();
                 for (int i =0; i < players.size(); i++){
+                    if(listUserNameNot.contains(players.get(i).getName())){
+                        continue;
+                    }
                     if(players.get(i).getSelection() == DctkUtils.DCTK.D){
                         countD++;
                         selectD = selectD + players.get(i).getCoin();
@@ -602,149 +604,102 @@ public class DctkService {
                     }
                     Integer tong = selectD + selectQ + selectT + selectU + selectK + selectC;
 //                    int coinPlay = getCoinLogic1(DctkUtils.DCTK.range1,DctkUtils.DCTK.range2 );
-                    int coinPlay = 2000000;
-                    if(countSuccess != 0){
-                        coinPlay = coinPlay + 500000;
+                    int coinPlay = (Math.abs(selectC - selectD) * 4) / 100;
+                    if (coinPlay < 200000){
+                        coinPlay = 200000;
                     }
                     String playString = "";
-                    String playStringDc = "";
-                    String playStringTk = "";
-//                    if(selectD > selectC){
-//                        if (selectC != 0){
-//                            int check = selectD / selectC;
-//                            if (check >= DctkUtils.DCTK.check && DctkUtils.DCTK.check1 >= check){
-//                                playString = "C";
-//                                text = text + "=>>> bien check = " + check + ", chon: C" + "\n" ;
-//                            }else{
-//                                text = text + "=>>> bien check = " + check + ", bo qua chon: C" + "\n" ;
-//                            }
-//                        }else{
-//                            playString = "C";
-//                            text = text + "=>>> select C = 0, chon: C "+ "\n";
-//                        }
-//
-//                    }else{
-//                        if (selectD != 0){
-//                            int check = selectC / selectD;
-//                            if (check >= DctkUtils.DCTK.check && DctkUtils.DCTK.check1 >= check){
-//                                playString = "D";
-//                                text = text + "=>>> bien check = " + check + ", chon: D" + "\n" ;
-//                            }else{
-//                                text = text + "=>>> bien check = " + check + ", bo qua chon: D" + "\n" ;
-//                            }
-//                        }else{
-//                            playString = "D";
-//                            text = text + "=>>> select D = 0, chon: D "+ "\n";
-//                        }
-//                    }
-                    stringMapDc.put( "D", countD);
-                    stringMapDc.put( "C", countC);
-                    stringMapTk.put( "K", countK);
-                    stringMapTk.put( "T", countT);
-                    if(stringMapDc.get("D") > stringMapDc.get("C") + 1 ){
-                        text = text + "So luong item C: " + countC++ + "\n";
-                        text = text + "So luong item D: " + countD + "\n";
-                        playString = "C";
-                        selectC = selectC + coinPlay;
-                    }else if(stringMapDc.get("C") > stringMapDc.get("D") + 1){
-                        text = text + "So luong item D: " + countD++ + "\n";
-                        text = text + "So luong item C: " + countC + "\n";
-                        playString = "D";
-                        selectD = selectC + coinPlay;
-                    }else{
-                        if(selectD > selectC + coinPlay){
-                            text = text + "So luong item C: " + countC++ +"\n";
-                            text = text + "So luong item D: " + countD +"\n";
-                            selectC = selectC + coinPlay;
-                            text = text + "Tham gia case 'selectD > selectC + coinPlay' => C" + "\n";
-                            playString = "C";
+                    if(selectD > selectC){
+                        if (selectC != 0){
+                            int check = selectD / selectC;
+                            if (check >= DctkUtils.DCTK.check && DctkUtils.DCTK.check1 >= check){
+                                playString = "C";
+                                text = text + "=>>> bien check = " + check + ", chon: C" + "\n" ;
+                            }else{
+                                text = text + "=>>> bien check = " + check + ", bo qua chon: C" + "\n" ;
+                            }
+                            text = text + "chenh lech D > C: " + formatNumber(selectD - selectC) + "\n";
                         }else{
-                            text = text + "So luong item D: " + countD++ +"\n";
-                            text = text + "So luong item C: " + countC +"\n";
-                            text = text + "Tham gia case 'selectD < selectC + coinPlay' => D" + "\n";
-                            selectD = selectC + coinPlay;
+                            playString = "C";
+                            text = text + "=>>> select C = 0, chon: C "+ "\n";
+                        }
+
+                    }else{
+                        if (selectD != 0){
+                            int check = selectC / selectD;
+                            if (check >= DctkUtils.DCTK.check && DctkUtils.DCTK.check1 >= check){
+                                playString = "D";
+                                text = text + "=>>> bien check = " + check + ", chon: D" + "\n" ;
+                            }else{
+                                text = text + "=>>> bien check = " + check + ", bo qua chon: D" + "\n" ;
+                            }
+                            text = text + "chenh lech C > D: " + formatNumber(selectC - selectD) + "\n";
+                        }else{
                             playString = "D";
+                            text = text + "=>>> select D = 0, chon: D "+ "\n";
                         }
                     }
                     playStringDc = playString;
                     if (Objects.equals(playString, "D")) {
                         playDC = "D";
-                        dcApi = new DCTK(0, DctkUtils.DCTK.D, DctkUtils.DCTK.coinLogicNew + coinPlay, 4);
+                        dcApi = new DCTK(0, DctkUtils.DCTK.D,  coinPlay, 4);
                         ResponseDctk responseDc = callApi(dcApi);
                         dcBefore = dcApi;
                         textDc = textDc + "===================Response DC: " + responseDc.getMessage()  + " ==> " + formatNumber(dcApi.getCoin()) + "\n";
                     } else if  (Objects.equals(playString, "C")) {
                         playDC = "C";
-                        dcApi = new DCTK(0, DctkUtils.DCTK.C, DctkUtils.DCTK.coinLogicNew + coinPlay, 4);
+                        dcApi = new DCTK(0, DctkUtils.DCTK.C, coinPlay, 4);
                         ResponseDctk responseDc = callApi(dcApi);
                         dcBefore = dcApi;
                         textDc = textDc + "===================Response DC: " + responseDc.getMessage()  + " ==> " + formatNumber(dcApi.getCoin()) + "\n";
                     }
-//                    if(selectT > selectK){
-//                        if (selectK != 0){
-//                            int check = selectT / selectK;
-//                            if (check >= DctkUtils.DCTK.check && DctkUtils.DCTK.check1 >= check){
-//                                playString = "K";
-//                                text = text + "=>>> bien check = " + check + ", chon: K" + "\n" ;
-//
-//                            }else{
-//                                text = text + "=>>> bien check = " + check + ", bo qua chon: K" + "\n" ;
-//                            }
-//                        }else{
-//                            playString = "K";
-//                            text = text + "=>>> select K = 0, chon: K "+ "\n";
-//                        }
-//
-//                    }else{
-//                        if (selectT != 0){
-//                            int check = selectK / selectT;
-//                            if (check >= DctkUtils.DCTK.check && DctkUtils.DCTK.check1 >= check){
-//                                playString = "T";
-//                                text = text + "=>>> bien check = " + check + ", chon: T" + "\n" ;
-//                            }else{
-//                                text = text + "=>>> bien check = " + check + ", bo qua chon: T" + "\n" ;
-//                            }
-//                        }else{
-//                            playString = "T";
-//                            text = text + "=>>> select T = 0, chon: T "+ "\n";
-//                        }
-//                    }
-                    playString = "";
-                    if(stringMapTk.get("T") > stringMapTk.get("K") + 1){
-                        text = text + "So luong item K: " + countK++ +"\n";
-                        text = text + "So luong item T: " + countT +"\n";
-                        selectK = selectK +coinPlay;
-                        playString = "K";
-                    }else if(stringMapTk.get("K") > stringMapTk.get("T") + 1){
-                        text = text + "So luong item T: " + countT++ +"\n";
-                        text = text + "So luong item K: " + countK +"\n";
-                        selectT = selectT +coinPlay;
-                        playString = "T";
-                    }else{
-                        if(selectT > selectK + coinPlay){
-                            text = text + "So luong item K: " + countK++ +"\n";
-                            text = text + "So luong item T: " + countT +"\n";
-                            text = text + "Tham gia case 'selectT > selectK + coinPlay' => K" + "\n";
-                            selectK = selectK + coinPlay;
-                            playString = "K";
+                    playString= "";
+                    coinPlay = (Math.abs(selectT - selectK) * 4) / 100;
+                    if(coinPlay < 200000){
+                        coinPlay = 200000;
+                    }
+                    if(selectT > selectK){
+                        if (selectK != 0){
+                            int check = selectT / selectK;
+                            if (check >= DctkUtils.DCTK.check && DctkUtils.DCTK.check1 >= check){
+                                playString = "K";
+                                text = text + "=>>> bien check = " + check + ", chon: K" + "\n" ;
+                                text = text + "chenh lech T > K: " + formatNumber(selectT - selectK) + "\n";
+                            }else{
+                                text = text + "=>>> bien check = " + check + ", bo qua chon: K" + "\n" ;
+                                text = text + "chenh lech T > K: " + formatNumber(selectT - selectK) + "\n";
+                            }
                         }else{
-                            text = text + "So luong item K: " + countT++ +"\n";
-                            text = text + "So luong item T: " + countK +"\n";
-                            text = text + "Tham gia case 'selectT < selectK + coinPlay' => T" + "\n";
-                            selectT = selectT + coinPlay;
+                            playString = "K";
+                            text = text + "=>>> select K = 0, chon: K "+ "\n";
+                        }
+
+                    }else{
+                        if (selectT != 0){
+                            int check = selectK / selectT;
+                            if (check >= DctkUtils.DCTK.check && DctkUtils.DCTK.check1 >= check){
+                                playString = "T";
+                                text = text + "=>>> bien check = " + check + ", chon: T" + "\n" ;
+                                text = text + "chenh lech K > T: " + formatNumber(selectK - selectT) + "\n";
+                            }else{
+                                text = text + "=>>> bien check = " + check + ", bo qua chon: T" + "\n" ;
+                                text = text + "chenh lech K > T: " + formatNumber(selectK - selectT) + "\n";
+                            }
+                        }else{
                             playString = "T";
+                            text = text + "=>>> select T = 0, chon: T "+ "\n";
                         }
                     }
                     playStringTk = playString;
                      if (Objects.equals(playString, "T")) {
                         playTK = "T";
-                        tkApi = new DCTK(0, DctkUtils.DCTK.T, DctkUtils.DCTK.coinLogicNew + coinPlay, 4);
+                        tkApi = new DCTK(0, DctkUtils.DCTK.T,  coinPlay, 4);
                         ResponseDctk responseTk = callApi(tkApi);
                         ktBefore = tkApi;
                         textTk = textTk + "===================Response TK: " + responseTk.getMessage() + " ==> " + formatNumber(tkApi.getCoin()) + "\n";
                     } else if (Objects.equals(playString, "K")){
                         playTK = "K";
-                        tkApi = new DCTK(0, DctkUtils.DCTK.K, DctkUtils.DCTK.coinLogicNew + coinPlay, 4);
+                        tkApi = new DCTK(0, DctkUtils.DCTK.K,  coinPlay, 4);
                         ResponseDctk responseTk = callApi(tkApi);
                         ktBefore = tkApi;
                         textTk = textTk + "===================Response TK: " + responseTk.getMessage() + " ==> " + formatNumber(tkApi.getCoin()) + "\n";
@@ -788,6 +743,8 @@ public class DctkService {
                             + "======> Tong  = " + formatNumber(tong) + "\n";
                     sendMail(text);
                     System.out.println(text);
+                    listMapPlayer.clear();
+                    listMapPlayer = new HashMap<>();
                     text = "";
                 }
             }
@@ -970,7 +927,7 @@ public class DctkService {
         }
 
     }
-    private static WebSocketClient client = null;
+    public static WebSocketClient client = null;
     public void connectSocket(){
         if(client != null){
             if(!isDisConnect(client)){

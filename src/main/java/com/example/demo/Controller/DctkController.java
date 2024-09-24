@@ -1,20 +1,14 @@
 package com.example.demo.Controller;
 
-import com.example.demo.DTO.HistoryDTO;
-import com.example.demo.Obj.History;
 import com.example.demo.Service.DctkService;
 import com.example.demo.Service.NsoService;
-import com.example.demo.websocket.WebSocketScraper;
-import org.java_websocket.client.WebSocketClient;
+import com.example.demo.Service.PlayerNsoService;
+import com.example.demo.Service.PlayerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api")
@@ -23,6 +17,10 @@ public class DctkController {
     private DctkService dctkService;
     @Autowired
     private NsoService nsoService;
+    @Autowired
+    private PlayerService playerService;
+    @Autowired
+    private PlayerNsoService playerNsoService;
     @GetMapping("/run")
     public String sendEmail() {
         ExecutorService executorService = Executors.newFixedThreadPool(1);
@@ -61,12 +59,24 @@ public class DctkController {
     }
     @GetMapping("/change")
     public String change() {
-        try {
-            dctkService.change();
-        } catch (Exception e) {
-            System.out.println("ERRORRRR Change");
-        }
-        return "Change success";
+        ExecutorService executorService1 = Executors.newFixedThreadPool(1);
+        executorService1.submit(() -> {
+            try {
+                System.out.println("Start Save Player");
+                playerService.save();
+            } catch (Exception e) {
+                Thread.currentThread().interrupt();
+            }
+        }); ExecutorService executorService = Executors.newFixedThreadPool(1);
+        executorService.submit(() -> {
+            try {
+                System.out.println("Start Save NSO Player");
+                playerNsoService.save();
+            } catch (Exception e) {
+                Thread.currentThread().interrupt();
+            }
+        });
+        return "Run success";
     }
     @PostMapping("/ws")
     public void getWS(@RequestBody String data){

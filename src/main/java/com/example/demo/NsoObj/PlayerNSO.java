@@ -1,8 +1,16 @@
 package com.example.demo.NsoObj;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.persistence.*;
+import lombok.Data;
 
+@Entity
+@Table(name = "playerNso")
+@Data
 public class PlayerNSO {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
     @JsonProperty("user_id")
     private Integer userId;
     @JsonProperty("server")
@@ -13,6 +21,7 @@ public class PlayerNSO {
     private String name;
     @JsonProperty("selection")
     private int selection;
+    private String selectStr;
     @JsonProperty("status")
     private int status;
     @JsonProperty("xu")
@@ -25,6 +34,31 @@ public class PlayerNSO {
     private String selectionStr;
     @JsonProperty("time")
     private String time;
+    private String createAt;
+
+    public Long getId() {
+        return id;
+    }
+
+    public String getSelectStr() {
+        return selectStr;
+    }
+
+    public void setSelectStr(String selectStr) {
+        this.selectStr = selectStr;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getCreateAt() {
+        return createAt;
+    }
+
+    public void setCreateAt(String createAt) {
+        this.createAt = createAt;
+    }
 
     // Getters and Setters
     public Integer getUserId() {

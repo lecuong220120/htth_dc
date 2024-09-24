@@ -1,8 +1,16 @@
 package com.example.demo.Obj;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.persistence.*;
+import lombok.Data;
 
+@Entity
+@Table(name = "history")
+@Data
 public class History {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id_history;
     @JsonProperty("id")
     private Integer id;
     @JsonProperty("id_server")

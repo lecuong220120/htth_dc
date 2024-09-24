@@ -3,6 +3,7 @@ package com.example.demo.websocket;
 import com.example.demo.Obj.History;
 import com.example.demo.Obj.Player;
 import com.example.demo.Service.DctkService;
+import com.example.demo.Service.PlayerService;
 import com.example.demo.Utils.DctkUtils;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
@@ -17,10 +18,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 public class WebSocketScraper extends WebSocketClient {
     public WebSocketScraper(URI serverUri) {
@@ -53,6 +51,10 @@ public class WebSocketScraper extends WebSocketClient {
             if(!dctkService.listMapPlayer.containsKey(player.getId())){
                 dctkService.listMapPlayer.put(player.getId(), player);
             }
+            if(!PlayerService.listMapPlayerSave.containsKey(player.getId())){
+                PlayerService.listMapPlayerSave.put(player.getId(), player);
+            }
+
         }
     }
 

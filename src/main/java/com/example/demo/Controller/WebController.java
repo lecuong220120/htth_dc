@@ -35,13 +35,13 @@ public class WebController {
     public String submitForm(@ModelAttribute FormData formData, Model model) {
         // Xử lý dữ liệu từ form, có thể gọi API tại đây
         System.out.println("Input text: " + formData.getInputText());
-
-        if(!StringUtils.isEmpty(formData.getInputText())){
-            DctkUtils.DCTK.coin = Integer.parseInt(formData.getInputText());
-        }
-        if(!StringUtils.isEmpty(formData.getInputText1())){
-            DctkUtils.DCTK.coinAdd = Integer.parseInt(formData.getInputText1());
-        }
+//
+//        if(!StringUtils.isEmpty(formData.getInputText())){
+//            DctkUtils.DCTK.coin = Integer.parseInt(formData.getInputText());
+//        }
+//        if(!StringUtils.isEmpty(formData.getInputText1())){
+//            DctkUtils.DCTK.coinAdd = Integer.parseInt(formData.getInputText1());
+//        }
 
         return "home";
     }

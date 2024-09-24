@@ -4,6 +4,7 @@ import com.example.demo.NsoObj.GameData;
 import com.example.demo.NsoObj.PlayerNSO;
 import com.example.demo.Obj.TimeSocket;
 import com.example.demo.Utils.DctkUtils;
+import com.example.demo.websocket.WebSocketThreadNso;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -11,9 +12,13 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+import java.net.URI;
 import java.text.DecimalFormat;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static com.example.demo.Utils.DctkUtils.CLNSO.percent;
+
 @Service
 public class NsoService {
     private static boolean isRun = true;
@@ -38,8 +43,6 @@ public class NsoService {
                 Long selectC = 0L;
                 Long selectT = 0L;
                 Long selectK = 0L;
-                Long selectU = 0L;
-                Long selectQ = 0L;
                 //get time
                 getTimeCurrent1();
                 int minutes = timeSocket.getTime() / 60;
@@ -52,8 +55,6 @@ public class NsoService {
                 while(System.currentTimeMillis() < timeEnd){
                     Thread.sleep(1000);
                 }
-                String textDc = "";
-                String textTk = "";
 
                 List<PlayerNSO> playerNSOS = getPlayerNSO();
                 System.out.println("====================Player NSO size(): " + playerNSOS.size());
@@ -69,119 +70,41 @@ public class NsoService {
                     }
                 }
                 if(activeLogicNew1){
+                    long coinDC = selectD - selectC;
+                    long coinTk = selectT - selectK;
                     String text1 = "**************NSO SITE****************" + "\n\n";
-                    String playString = "";
                     String playStringDc = "";
                     String playStringTk = "";
+
                     Map<Long, Integer> playMap = new HashMap<>();
-//                    long coinPlayDcPre =  ((Math.abs(selectD - selectC) * 10)  /100)/2;
-//                    long coinPlayDc  = roundToNearestHundredThousand((int) coinPlayDcPre);
-//                    if(Math.abs(selectD - selectC) > 500000000){
-//                        coinPlayDc = 10000000;
-//                    }
-//                    long coinPlayTkPre =  ((Math.abs(selectT - selectK) * 10)  /100)/2;
-//                    long coinPlayTk = roundToNearestHundredThousand((int) coinPlayTkPre);
-//                    if(Math.abs(selectT - selectK) > 500000000){
-//                        coinPlayTk = 10000000;
-//                    }
-                    int coinRandom = getCoinLogic();
-                    long coinPlayTk = coinRandom;
-                    long coinPlayDc = coinRandom;
-                    if(Math.abs(selectD-selectC)>Math.abs(selectT-selectK)){
-                        if(selectD > selectC){
-                            if (selectC != 0){
-                                long check = selectD / selectC;
-                                if (check >= DctkUtils.DCTK.checkNSO){
-                                    if(isSwap){
-                                        playString = "D";
-                                    }else{
-                                        playString = "C";
-                                    }
-                                    text1 = text1 + "(D)" + formatNumber(selectD) + "/" +  formatNumber(selectC) +"(C)"+"): ===>>> " + check +", chenh lech: "+formatNumber(Math.abs(selectD-selectC) )+ ", chon: "+playString+", swap is :" +isSwap+", tham gia: "+ formatNumber(coinPlayDc)+ "\n";
-                                }else{
-                                    text1 = text1 + "(D)" + formatNumber(selectD) + "/" +  formatNumber(selectC) +"(C): ===>>> " + check +", chenh lech: "+formatNumber(Math.abs(selectD-selectC) )+ ", bo chon: C" + "\n";
-                                }
-                            }else{
-                                playString = "C";
-                                text1 = text1 + "=>>> select C = 0, chon: C , tham gia: "+ formatNumber(coinPlayDc)+ "\n";
-                            }
-
-                        }else{
-                            if (selectD != 0){
-                                long check = selectC / selectD;
-                                if (check >= DctkUtils.DCTK.checkNSO){
-                                    if(isSwap){
-                                        playString = "C";
-                                    }else{
-                                        playString = "D";
-                                    }
-                                    text1 = text1 + "(C)" + formatNumber(selectC) + "/" +  formatNumber(selectD) +"(D): ===>>> " + check +", chenh lech: "+formatNumber(Math.abs(selectD-selectC) )+ ", chon: "+playString+", swap is :" +isSwap+", tham gia: "+ formatNumber(coinPlayDc)+ "\n";
-                                }else{
-                                    text1 = text1 + "(C)" + formatNumber(selectC) + "/" +  formatNumber(selectD) +"(D): ===>>> " + check +", chenh lech: "+formatNumber(Math.abs(selectD-selectC) )+ ", bo chon: D" + "\n";
-                                }
-                            }else{
-                                playString = "D";
-                                text1 = text1 + "=>>> select D = 0, chon: D, tham gia: "+ formatNumber(coinPlayDc)+ "\n";
-                            }
-                        }
-                    } else {
-                        if(selectT > selectK){
-                            if (selectK != 0){
-                                long check = selectT / selectK;
-                                if (check >= DctkUtils.DCTK.check){
-                                    if(isSwap){
-                                        playString = "T";
-                                    }else{
-                                        playString = "K";
-                                    }
-                                    text1 = text1 + "(T)" + formatNumber(selectT) + "/" +  formatNumber(selectK) +"(K): ===>>> " + check+", chenh lech: "+formatNumber(Math.abs(selectT-selectK) )+ ", chon: "+playString+", swap is :" +isSwap+", tham gia: "+ formatNumber(coinPlayTk)+ "\n";
-
-                                }else{
-                                    text1 = text1 + "(T)" + formatNumber(selectT) + "/" +  formatNumber(selectK) +"(K): ===>>> " + check +", chenh lech: "+formatNumber(Math.abs(selectT-selectK))+ ", bo chon: K"+ "\n";
-                                }
-                            }else{
-
-                                playString = "K";
-                                text1 = text1 + "=>>> select K = 0, chon: K, tham gia: "+ formatNumber(coinPlayTk)+ "\n";
-                            }
-
-                        }else{
-                            if (selectT != 0){
-                                long check = selectK / selectT;
-                                if (check >= DctkUtils.DCTK.check){
-                                    if(isSwap){
-                                        playString = "K";
-                                    }else{
-                                        playString = "T";
-                                    }
-                                    text1 = text1 + "(K)" + formatNumber(selectK) + "/" +  formatNumber(selectT) +"(T): ===>>> " + check+", chenh lech: "+formatNumber(Math.abs(selectT-selectK)) + ", chon: "+playString+", swap is :" +isSwap+", tham gia: "+ formatNumber(coinPlayTk)+ "\n";
-                                }else{
-                                    text1 = text1 + "(K)" + formatNumber(selectK) + "/" +  formatNumber(selectT) +"(T): ===>>> " + check +", chenh lech: "+formatNumber(Math.abs(selectT-selectK))+ ", bo chon: T"+ "\n";
-                                }
-                            }else{
-                                playString = "T";
-                                text1 = text1 + "=>>> select T = 0, chon: T, tham gia: "+ formatNumber(coinPlayTk)+ "\n";
-                            }
-                        }
+                    long coinPlayTk = Math.abs(coinDC) * percent / 100;
+                    long coinPlayDc = Math.abs(coinDC) * percent / 100;;
+                    if(coinDC > 0){
+                        playStringDc = "C";
+                    } else{
+                        playStringDc = "D";
+                    }
+                    if(coinTk > 0){
+                        playStringTk = "K";
+                    }else{
+                        playStringTk = "T";
                     }
 
-                    playStringDc = playString;
-
-
-                    if (Objects.equals(playString, "D")) {
+                    if (Objects.equals(playStringDc, "D")) {
                         playMap.put(coinPlayDc, DctkUtils.CLNSO.D);
-                    } else if  (Objects.equals(playString, "C")) {
+                    }else{
                         playMap.put(coinPlayDc, DctkUtils.CLNSO.C);
-                    } else if (Objects.equals(playString, "T")) {
+                    }
+                    if (Objects.equals(playStringTk, "T")) {
                         playMap.put(coinPlayTk, DctkUtils.CLNSO.T);
-                    } else if (Objects.equals(playString, "K")){
+                    }else{
                         playMap.put(coinPlayTk, DctkUtils.CLNSO.K);
                     }
                     callApi(playMap);
                     text = text + text1;
                     System.out.println(text);
                     text = "";
-                    Thread.sleep(50 * 1000);
+                    Thread.sleep(30 * 1000);
                 }
             }
         }catch (Exception e){
@@ -190,12 +113,24 @@ public class NsoService {
 
     }
     public static TimeSocket timeSocket = null;
+    public static WebSocketThreadNso clientNso = null;
     public void getTimeCurrent1(){
         try {
-            boolean check = true;
             timeSocket = null;
+            URI uri = new URI("wss://game-server.nsocltx.com/socket.io/?EIO=3&transport=websocket");
+            clientNso = new WebSocketThreadNso(uri);
+            clientNso.connect();
+            if(clientNso.isClosed()){
+                clientNso.connect();
+            }
+            boolean check = true;
             while (check){
-                if(timeSocket == null || timeSocket.getTime() == 120 ||timeSocket.getTime() < 25 || timeSocket.getTime() > 90){
+                if(clientNso == null || clientNso.isClosed()){
+                    System.out.println("========retry connected nso");
+                    clientNso = new WebSocketThreadNso(uri);
+                    clientNso.connect();
+                }
+                if(timeSocket == null || timeSocket.getTime() == 120 || timeSocket.getTime() < 25 || timeSocket.getTime() > 90){
                     Thread.sleep(100);
                 }else{
                     check = false;
@@ -204,6 +139,7 @@ public class NsoService {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+        clientNso.close();
     }
     public String formatNumber(long number) {
         DecimalFormat df;
