@@ -30,7 +30,7 @@ public class DctkUtils {
         public static int CK = 12;
         public static int DT = 13;
         public static int DK = 14;
-        public static int coin = 200000;
+        public static int coin = 100000;
         public static int coinZero = 2500000;
         public static int coinLogicNew = 0;
         public static int coinAdd = 299999;
@@ -42,6 +42,6 @@ public class DctkUtils {
         public static int check = 1  ;
         public static int range1 = 2500000;
         public static int range2 = 3300000;
-        public static int percent = 3;
+        public static int percent = 2;
     }
 }

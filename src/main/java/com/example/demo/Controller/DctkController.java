@@ -26,8 +26,8 @@ public class DctkController {
         ExecutorService executorService = Executors.newFixedThreadPool(1);
         executorService.submit(() -> {
             try {
-                System.out.println("Start DCTK");
-                dctkService.playVersion3();
+//                System.out.println("Start DCTK");
+//                dctkService.playVersion3();
             } catch (Exception e) {
                 Thread.currentThread().interrupt();
             }

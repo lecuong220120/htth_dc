@@ -1,28 +1,29 @@
 package com.example.demo.SchedualedTask;
 import com.example.demo.Obj.Player;
 import com.example.demo.Service.DctkService;
+import com.example.demo.Service.NsoService;
 import jakarta.mail.*;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
 
+import static com.example.demo.Service.NsoService.isDone;
+
 @Component
 public class ScheduledTasks {
-
+    @Autowired
+    NsoService nsoService;
 //     Chạy job mỗi 5 giây
-    @Scheduled(fixedRate = 1800 * 1000)
+    @Scheduled(fixedRate = 2 * 60 * 1000)
 //    @Scheduled(fixedRate = 120 * 1000)
-    public void performTask() {
-//        List<Player> players = new ArrayList<>();
-//        String text = "";
-//        for (Map.Entry<String, Player> entry : DctkService.playerMap.entrySet()) {
-//            text = text + entry.getValue().toString();
-//        }
-//        text = text + "ADMIN WIN: "+ Player.formatNumber(DctkService.adminWin);
-//        sendMail(text);
+    public void playDc() throws InterruptedException {
+//        System.out.println("Start auto nso");
+//        nsoService.playVersion4NSO();
+//        System.out.println("Time next start: "+ new Date(System.currentTimeMillis() + (5*6*1000)) );
     }
     public static void sendMail(String text){
         // Cấu hình SMTP server
